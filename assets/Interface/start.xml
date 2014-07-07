@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nifty xmlns="http://nifty-gui.sourceforge.net/nifty-1.3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://nifty-gui.sourceforge.net/nifty-1.3.xsd http://nifty-gui.sourceforge.net/nifty-1.3.xsd">
+    <!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
+    <!-- The source code was modified from the following reference:                     -->
+    <!-- Anonymous. (n.d.).  Laying out the GUI in XML. Retrived from                   -->
+    <!-- http: //hub.jmonkeyengine.org/wiki/doku.php/jme3:advanced:nifty_gui_xml_layout -->
+    <!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
+    <useStyles filename="nifty-default-styles.xml" />
+    <useControls filename="nifty-default-controls.xml" />
+    <!-- ... -->
+    <screen id="start" controller="com.hemen.CMSC325.FinalProject.GuiAppState">
+        <layer id="background" childLayout="center">
+             <image filename="Interface/StartBackground.png" height="100%" width="100%"></image>
+        </layer>
+        <layer id="foreground" childLayout="vertical">
+            <panel id="panel_title" height="12.5%" width="75%" align="center" childLayout="center">  
+                <text text="Hemen's Killer Game (a.k.a. Project 1)" font="Interface/Fonts/Arial.fnt" color="#00ff" width="100%" height="100%" />
+            </panel>
+            <panel id="panel_input" height="12.5%" width="25%" align="center" valign="center" childLayout="vertical">
+                <panel childLayout="horizontal">
+                    <text id="totalRoundsLabel" style="nifty-label" text="Total Rounds: " width="120px" align="left" textVAlign="center" textHAlign="left" />
+                    <control id="totalRounds" name="dropDown" />
+                </panel>
+                <panel childLayout="horizontal">
+                    <text id="totalPlayersLabel" style="nifty-label" text="Total Players: " width="120px" align="left" textVAlign="center" textHAlign="left" />
+                    <control id="totalPlayers" name="dropDown" />
+                </panel>
+            </panel>
+            <panel id="panel_mid_bottom" height="50%" width="75%" align="center" childLayout="vertical">  
+                <text text="In this game you must shoot or touch all of the floating red (player 1) or blue (player 2) balls in order to complete your turn of the game. Once touched, the ball will turn green. There are two players and turns alternate back and forth. Once one player has hit all balls in the scene, the next set of balls will appear for player 2. Click the 'Start' button to start or the 'Quit' button to exit the game." font="Interface/Fonts/Arial.fnt" color="#00ff" width="100%" height="80%" wrap="true" />              
+            </panel>
+            <panel id="panel_bottom" height="25%" width="75%" align="center" childLayout="horizontal">
+                <panel id="StartPanel" height="50%" width="50%" align="center" childLayout="center">
+                    <control name="button" label="Start" id="StartButton" align="center" valign="center">
+                        <interact onClick="startGame()" />
+                    </control>
+                </panel>
+                <panel id="QuitPanel" height="50%" width="50%" align="center" childLayout="center">
+                    <control name="button" label="Quit" id="QuitButton" align="center" valign="center">
+                        <interact onClick="quit()" />
+                    </control>
+                </panel>
+            </panel>
+        </layer>
+    </screen>
+    <!-- -->
+    <screen id="hud" controller="com.hemen.CMSC325.FinalProject.GuiAppState">
+        <layer id="background" childLayout="center">
+            <image filename="Interface/HudBackground.png" height="100%" width="100%"></image>
+        </layer>
+        <!-- -->
+        <layer id="forground" childLayout="vertical" align="center">
+            <panel id="stats_panel" childLayout="horizontal" height="6%" width="100%">
+                <text id="playerID" text="PlayerX" font="Interface/Fonts/Arial.fnt" color="#00ff" width="25%" height="100%" textHAlign="left" />
+                <text id="hitObject" text="" font="Interface/Fonts/Arial.fnt" color="#00ff" width="50%" height="100%" />
+                <text id="timer" text="" font="Interface/Fonts/Arial.fnt" color="#00ff" width="25%" height="100%" textHAlign="right" />
+            </panel>
+            <panel id="blank" childLayout="horizontal" height="94%" width="100%">
+                <!-- Takes up the rest of the vertical space of this layer. -->
+            </panel>
+        </layer>
+    </screen>
+    <!-- -->
+    <screen id="pause" controller="com.hemen.CMSC325.FinalProject.GuiAppState">
+        <layer id="background" childLayout="center">
+           <image filename="Interface/GUIBackground.png" height="100%" width="100%"></image>
+        </layer>
+        <layer id="foreground" align="center" childLayout="vertical" height="90%" width="90%">
+            <panel id="pausedText" childLayout="center" height="50%" width="100%">
+                <text text="It is the next player's turn. Please switch controls with the next person." font="Interface/Fonts/Arial.fnt" color="#00ff" width="100%" height="100%" wrap="true" />    
+            </panel>
+            <panel id="reset_panel" childLayout="center" height="50%" width="100%">
+                <control name="button" label="Continue" id="ContinueButton" align="center" valign="center">
+                    <interact onClick="restartGame()" />
+                </control>              
+            </panel>
+        </layer>
+    </screen>
+</nifty>
