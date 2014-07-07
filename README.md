@@ -8,12 +8,12 @@ Future plans include but are not limited to the following:
 Character:
 -Update the player vehicle with a better skin
 -Add different types of weapons
--Figure out a better way to handel multiple players, or just get rid of the second player all together
--Fix the camera so that it is always directly behind the vehicle instead of the wierd cirular offset it has now
+-Figure out a better way to handle multiple players, or just get rid of the second player all together
+-Fix the camera so that it is always directly behind the vehicle instead of the weird cicrular offset it has now
 
 Enemies:
 -Add different kinds of targets. (need to create meshes for them and give them skins as well)
--Add some kind of AI so they do not just ceepily follow the player around like lost kittens
+-Add some kind of AI so they do not just ceepilly follow the player around like lost kittens
 -Add spawning of new targets and get rid of the old ones instead of just changing colors and remaining in the map
 
 Environment:
@@ -26,6 +26,5 @@ Gameplay:
 -Add the total score to the hud display, and the score for each hit item
 
 I could go on and on (again first attempt). 
-
 
 This line was added only to test fetching from here to a local machine :)
