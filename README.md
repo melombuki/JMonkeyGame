@@ -25,8 +25,4 @@ Gameplay:
 -End the game after the timer reaches 5 minutes total for a single player's session
 -Add the total score to the hud display, and the score for each hit item
 
-I could go on and on (again first attempt). 
-
-This line was added only to test fetching from here to a local machine :)
-
-This line was added to test pushing to github.
+I could go on and on (again first attempt).
