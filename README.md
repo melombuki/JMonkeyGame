@@ -25,4 +25,4 @@ Gameplay:
 -End the game after the timer reaches 5 minutes total for a single player's session
 -Add the total score to the hud display, and the score for each hit item
 
-I could go on and on (again first attempt).
+There will be more added to the wish list later.
