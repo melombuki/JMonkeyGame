@@ -21,10 +21,6 @@
                     <text id="totalRoundsLabel" style="nifty-label" text="Total Rounds: " width="120px" align="left" textVAlign="center" textHAlign="left" />
                     <control id="totalRounds" name="dropDown" />
                 </panel>
-                <panel childLayout="horizontal">
-                    <text id="totalPlayersLabel" style="nifty-label" text="Total Players: " width="120px" align="left" textVAlign="center" textHAlign="left" />
-                    <control id="totalPlayers" name="dropDown" />
-                </panel>
             </panel>
             <panel id="panel_mid_bottom" height="50%" width="75%" align="center" childLayout="vertical">  
                 <text text="In this game you must shoot or touch all of the floating red (player 1) or blue (player 2) balls in order to complete your turn of the game. Once touched, the ball will turn green. There are two players and turns alternate back and forth. Once one player has hit all balls in the scene, the next set of balls will appear for player 2. Click the 'Start' button to start or the 'Quit' button to exit the game." font="Interface/Fonts/Arial.fnt" color="#00ff" width="100%" height="80%" wrap="true" />              
@@ -51,7 +47,7 @@
         <!-- -->
         <layer id="forground" childLayout="vertical" align="center">
             <panel id="stats_panel" childLayout="horizontal" height="6%" width="100%">
-                <text id="playerID" text="PlayerX" font="Interface/Fonts/Arial.fnt" color="#00ff" width="25%" height="100%" textHAlign="left" />
+                <text id="currentRound" text="Current Round: " font="Interface/Fonts/Arial.fnt" color="#00ff" width="25%" height="100%" textHAlign="left" />
                 <text id="hitObject" text="" font="Interface/Fonts/Arial.fnt" color="#00ff" width="50%" height="100%" />
                 <text id="timer" text="" font="Interface/Fonts/Arial.fnt" color="#00ff" width="25%" height="100%" textHAlign="right" />
             </panel>
@@ -67,7 +63,7 @@
         </layer>
         <layer id="foreground" align="center" childLayout="vertical" height="90%" width="90%">
             <panel id="pausedText" childLayout="center" height="50%" width="100%">
-                <text text="It is the next player's turn. Please switch controls with the next person." font="Interface/Fonts/Arial.fnt" color="#00ff" width="100%" height="100%" wrap="true" />    
+                <text text="Get ready for the next round. Press the continue button to go on." font="Interface/Fonts/Arial.fnt" color="#00ff" width="100%" height="100%" wrap="true" />    
             </panel>
             <panel id="reset_panel" childLayout="center" height="50%" width="100%">
                 <control name="button" label="Continue" id="ContinueButton" align="center" valign="center">

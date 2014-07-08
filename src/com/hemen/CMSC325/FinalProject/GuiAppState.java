@@ -85,7 +85,8 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
     @Override
     public void cleanup() {
         super.cleanup();
-        //clear all mappings and listeners, detach all nodes etc.
+        
+        // Clear all mappings and listeners, detach all nodes etc.
         setEnabled(false);
         rootNode.detachAllChildren();
     }
@@ -107,14 +108,13 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
     }
     
     /*
-     * This method starts the game app state
+     * This method starts the game app state.
      */
     public void startGame() {
         int rounds = totalRounds.getSelectedIndex() + 1;
-        int players = totalPlayers.getSelectedIndex() + 1;
+        
         // Set the number of rounds and players for the game
-        stateManager.getState(PlayAppState.class).setTotalRounds(rounds * players);
-        stateManager.getState(PlayAppState.class).setTotalPlayers(players);
+        stateManager.getState(PlayAppState.class).setTotalRounds(rounds);
         
         // Enable the hud and gameplay state
         goToHud();
@@ -137,8 +137,8 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
         if(nifty.getCurrentScreen().getScreenId().equals("hud")) {
             // Set the current player in top corner
             nifty.getCurrentScreen().findElementByName(
-                    "playerID").getRenderer(TextRenderer.class).setText("Player " +
-                        stateManager.getState(PlayAppState.class).getCurrentPlayer());
+                    "currentRound").getRenderer(TextRenderer.class).setText("Round " +
+                        stateManager.getState(PlayAppState.class).getCurrentRound());
             
             // Clear the object hit line if not already cleared.
             nifty.getCurrentScreen().findElementByName(
@@ -201,14 +201,6 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
             totalRounds.addItem("3");
 
             totalRounds.selectItemByIndex(0);
-        }
-
-        totalPlayers = findDropDownControl("totalPlayers");
-        if (totalPlayers != null) {
-            totalPlayers.addItem("1");
-            totalPlayers.addItem("2");
-
-            totalPlayers.selectItemByIndex(0);
         }
     }
     

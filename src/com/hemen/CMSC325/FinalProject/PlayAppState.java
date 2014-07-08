@@ -44,7 +44,6 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Sphere;
-import com.jme3.system.Timer;
 import java.util.Random;
 
 /**
@@ -68,7 +67,6 @@ public class PlayAppState extends AbstractAppState implements
     private ChaseCamera       chaseCam;
     private Camera            cam;
     private Listener          listener;
-    private Timer             timer;
     
     // Appstate specific fields
     private static final int MAX_OBS = 3; //number of balls player must hit
@@ -88,8 +86,6 @@ public class PlayAppState extends AbstractAppState implements
     private Quaternion hoverJetQ;
     private Quaternion yaw90 = new Quaternion().fromAngleAxis(
                 FastMath.HALF_PI, Vector3f.UNIT_Y);
-    private int totalPlayers = 0;
-    private int currentPlayer = 1; // 1 = playerA, 2 = playerB, etc.
     private boolean isStart = true; //fixes bug where ball is sometimes hit at start of turn
     private Node cube = new Node("Cube");
     private boolean roundOver = false; //true when there are not more targets to hit or time is up
@@ -116,12 +112,10 @@ public class PlayAppState extends AbstractAppState implements
         
         //totalRounds must = totalPlayers * cycles
         totalRounds = 2;  // one round per player 
-        totalPlayers = 2;
     }
     
     public PlayAppState(int cycles, int totalPlayers) {
         this.totalRounds = cycles * totalPlayers;
-        this.totalPlayers = totalPlayers;
     }
     
     @Override
@@ -264,8 +258,7 @@ public class PlayAppState extends AbstractAppState implements
             for(int i = 0; i < MAX_OBS; i++) {
                 goals[i].unhitBall();
                 //set appropriate color for ball
-                if(currentPlayer == 1) goals[i].getGeo().setMaterial(ball_A); //color player 1
-                else goals[i].getGeo().setMaterial(ball_B);                   //color player 2
+                goals[i].getGeo().setMaterial(ball_A); //color player 1
             }
         }
         
@@ -316,21 +309,15 @@ public class PlayAppState extends AbstractAppState implements
         if(!isRemaining) {
             // Start a delay timer
             // Game over. No rounds left, quit this appstate
-            if(currentRound*totalPlayers == totalRounds * totalPlayers) {
+            if(currentRound == totalRounds) {
                 bulletAppState.setEnabled(false);
                 setEnabled(false);
                 currentRound = 1;
-                currentPlayer = 1;
                 resetLevel();
                 stateManager.getState(GuiAppState.class).setEnabled(true);
                 stateManager.getState(GuiAppState.class).goToStart();
-            } else { // End of all players' turns in current round
-                // Swtich players
-                if(++currentPlayer > totalPlayers) { //reset back to first player
-                    currentPlayer = 1;
-                }
-                
-                //go to next round and reset the player position and balls
+            } else { // Just the end the current round               
+                // Go to next round and reset the player position and balls
                 currentRound++;
                 resetLevel();
                 isStart = true;
@@ -450,7 +437,7 @@ public class PlayAppState extends AbstractAppState implements
                 tempBall.hitBall(); //update ball as hit
                 shockwave.explode(geo.getLocalTranslation()); //add special effect
                 boomSound.setLocalTranslation(geo.getLocalTranslation());
-                boomSound.playInstance();
+                //boomSound.playInstance(); //comment out to mute
                 stateManager.getState(GuiAppState.class).showHitObject("ball");
             }
             isStart = false; //there was a collision = no longer start of turn
@@ -461,7 +448,7 @@ public class PlayAppState extends AbstractAppState implements
                 tempBall.hitBall(); //update ball as hit
                 shockwave.explode(geo.getLocalTranslation()); //add special effect
                 boomSound.setLocalTranslation(geo.getLocalTranslation());
-                boomSound.playInstance();
+                //boomSound.playInstance();
                 stateManager.getState(GuiAppState.class).showHitObject("ball");
             }
             isStart = false; //there was a collision = no longer start of turn
@@ -556,7 +543,7 @@ public class PlayAppState extends AbstractAppState implements
           player.jump();
         } else if (binding.equals("shoot") && value) {
             // Play the gun firing sound
-            shotSound.playInstance();
+            //shotSound.playInstance();
             
             // Create and move the bullet
             Geometry bulletg = new Geometry("bullet", bullet);
@@ -640,8 +627,7 @@ public class PlayAppState extends AbstractAppState implements
             goals[i].getRigidBodyControl().setPhysicsLocation(objLocations[i]);
                         
             //set appropriate color for ball
-            if(currentPlayer == 1) g.setMaterial(ball_A); //color player 1
-            else g.setMaterial(ball_B);                   //color player 2
+            g.setMaterial(ball_A); //color player 1
                        
             //reattach the ball physics control
             bulletAppState.getPhysicsSpace().add(goals[i].getRigidBodyControl());
@@ -679,10 +665,6 @@ public class PlayAppState extends AbstractAppState implements
     
     public void setTotalRounds(int r) {
         totalRounds = r;
-    }
-    
-    public void setTotalPlayers(int p) {
-        totalPlayers = p;
     }
     
     /*
@@ -747,10 +729,10 @@ public class PlayAppState extends AbstractAppState implements
     }
     
     /*
-     * This method returns the current player.
+     * This method returns the current round.
      */
-    public int getCurrentPlayer() {
-        return currentPlayer;
+    public int getCurrentRound() {
+        return currentRound;
     }
     
     /*

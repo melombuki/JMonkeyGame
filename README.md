@@ -8,7 +8,6 @@ Future plans include but are not limited to the following:
 Character:
 -Update the player vehicle with a better skin
 -Add different types of weapons
--Figure out a better way to handle multiple players, or just get rid of the second player all together
 -Fix the camera so that it is always directly behind the vehicle instead of the weird cicrular offset it has now
 
 Enemies:
@@ -22,9 +21,7 @@ Environment:
 -Create a new level of my own design
 
 Gameplay:
--End the game after the timer reaches 5 minutes total for a single player's session
+-End the game after the timer reaches 5 minutes total for a single round
 -Add the total score to the hud display, and the score for each hit item
 
 There will be more added to the wish list later.
-
-Adding another line here to test some basics of branching.
