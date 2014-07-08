@@ -195,11 +195,12 @@ public class PlayAppState extends AbstractAppState implements
         playerNode.addControl(player);
         
         // Set up the shooting audio
-        shotSound = new AudioNode(assetManager, "Sound/Effects/Bang.wav");
-        boomSound = new AudioNode(assetManager, "Sound/Effects/Beep.ogg");
+        shotSound = new AudioNode(assetManager, "Sound/Effects/Gun.wav");
+        boomSound = new AudioNode(assetManager, "Sound/Effects/Bang.wav");
+        boomSound.setPositional(true);
         
         // Set up the hover Jet
-        Spatial hoverJet = assetManager.loadModel("Models/Cube.001.mesh.xml");
+        Spatial hoverJet = assetManager.loadModel("Models/FighterBomber.mesh.xml");
         Material mat_hj = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
 
         mat_hj.setTexture("LightMap", assetManager.loadTexture(
@@ -214,11 +215,11 @@ public class PlayAppState extends AbstractAppState implements
         flyCam.setEnabled(false);
         chaseCam = new ChaseCamera(cam, playerNode, inputManager);
         chaseCam.setSmoothMotion(false);
-        chaseCam.setLookAtOffset(new Vector3f(0, 6f, -2f));
+        chaseCam.setLookAtOffset(new Vector3f(0, 6f, 0));
         chaseCam.setDefaultDistance(5.0f);
         chaseCam.setZoomSensitivity(0);
         chaseCam.setDragToRotate(false);
-        chaseCam.setMinDistance(5.0f);
+        //chaseCam.setMinDistance(5.0f);
         chaseCam.setMaxVerticalRotation(FastMath.QUARTER_PI);
         chaseCam.setInvertVerticalAxis(true);
         
@@ -409,7 +410,7 @@ public class PlayAppState extends AbstractAppState implements
                 tempBall.hitBall(); //update ball as hit
                 shockwave.explode(geo.getLocalTranslation()); //add special effect
                 boomSound.setLocalTranslation(geo.getLocalTranslation());
-                //boomSound.playInstance(); //comment out to mute
+                boomSound.playInstance(); //comment out to mute
                 stateManager.getState(GuiAppState.class).showHitObject("ball");
             }
             isStart = false; //there was a collision = no longer start of turn
@@ -420,7 +421,7 @@ public class PlayAppState extends AbstractAppState implements
                 tempBall.hitBall(); //update ball as hit
                 shockwave.explode(geo.getLocalTranslation()); //add special effect
                 boomSound.setLocalTranslation(geo.getLocalTranslation());
-                //boomSound.playInstance();
+                boomSound.playInstance();
                 stateManager.getState(GuiAppState.class).showHitObject("ball");
             }
             isStart = false; //there was a collision = no longer start of turn
@@ -515,19 +516,14 @@ public class PlayAppState extends AbstractAppState implements
           player.jump();
         } else if (binding.equals("shoot") && value) {
             // Play the gun firing sound
-            //shotSound.playInstance();
+            shotSound.playInstance();
             
             // Create and move the bullet
             Geometry bulletg = new Geometry("bullet", bullet);
             bulletg.setMaterial(mat_bullet);
             bulletg.setName("bullet");
-            
-            // Problem was collision with character physics control.
-            // Had to move the starting location of the bullet outside of the 
-            // character's capsuleCollisionShape
-            bulletg.setLocalTranslation(cam.getLocation().addLocal(cam.getDirection().normalize().mult(2f)));
-            // New chaseCam fixes the problem and makes vehicle much better
-            //bulletg.setLocalTranslation(cam.getLocation());
+            //don't just use cam.getLocation. bullets will not work when back is on a wall
+            bulletg.setLocalTranslation(playerNode.getWorldTranslation().add(0, 6f, 0));
             bulletg.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
             bulletg.addControl(new RigidBodyControl(bulletCollisionShape, 1));
             bulletg.getControl(RigidBodyControl.class).setCcdMotionThreshold(0.01f);
