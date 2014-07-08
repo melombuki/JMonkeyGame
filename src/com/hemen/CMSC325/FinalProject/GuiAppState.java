@@ -6,6 +6,7 @@ import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.asset.AssetManager;
 import com.jme3.audio.AudioRenderer;
+import com.jme3.bullet.BulletAppState;
 import com.jme3.input.FlyByCamera;
 import com.jme3.input.InputManager;
 import com.jme3.niftygui.NiftyJmeDisplay;
@@ -39,9 +40,9 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
     private NiftyJmeDisplay   disp;
     private Screen            screen;
     private Timer             timer;
-    private float             hitMark;
+    private float             hitMark = 0.0f;
+    private float             startMark = 0.0f;
     private DropDown          totalRounds;
-    private DropDown          totalPlayers;
     
     public GuiAppState() {}
     
@@ -69,12 +70,25 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
   }
     
     @Override
-    public void update(float tpf) {
-        // Update a timer within the GUI with time from start of screen
+    public void update(float tpf) {       
+        // Update a timer within the hud with time from start of screen and hanle
+        // 5 minute time limit
         if(nifty.getCurrentScreen().getScreenId().equals("hud")) {
+            // End the round or game at 5 minutes
+            if(timer.getTimeInSeconds() - startMark > 300f) { //5 minute limit
+                if(stateManager.getState(PlayAppState.class).getCurrentRound() == 
+                        stateManager.getState(PlayAppState.class).getTotalRounds()) {
+                    stateManager.getState(PlayAppState.class).gameOver();
+                } else {
+                    stateManager.getState(PlayAppState.class).roundOver();
+                    startMark = timer.getTimeInSeconds(); //reset the start timer
+                }       
+            }
+            
+            // Update the hud with current information
             nifty.getCurrentScreen().findElementByName(
                     "timer").getRenderer(TextRenderer.class).setText("Time: " +
-                        getTime(timer.getTimeInSeconds()));
+                        getTime(timer.getTimeInSeconds() - startMark));
             if(timer.getTimeInSeconds() - hitMark > 2) {
                 nifty.getCurrentScreen().findElementByName("hitObject").getRenderer(
                     TextRenderer.class).setText("");
@@ -111,6 +125,7 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
      * This method starts the game app state.
      */
     public void startGame() {
+        startMark = timer.getTimeInSeconds();
         int rounds = totalRounds.getSelectedIndex() + 1;
         
         // Set the number of rounds and players for the game
@@ -143,7 +158,8 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
             // Clear the object hit line if not already cleared.
             nifty.getCurrentScreen().findElementByName(
                     "hitObject").getRenderer(TextRenderer.class).setText("");
-            timer.reset();
+            
+            //timer.reset(); //restart the timer
         }
     }
 
@@ -180,6 +196,7 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
     public void restartGame() {
         goToHud();
         // Enable the gameplay state
+        stateManager.getState(BulletAppState.class).setEnabled(true);
         stateManager.getState(PlayAppState.class).setEnabled(true);
     }
     

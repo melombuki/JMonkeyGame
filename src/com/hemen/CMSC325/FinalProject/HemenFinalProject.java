@@ -67,7 +67,7 @@ public class HemenFinalProject extends SimpleApplication {
         setDisplayStatView(false); setDisplayFps(false);
         
         // Set up all app states and attach them
-        startAppState = new GuiAppState();   //gui menu
+        startAppState = new GuiAppState();     //gui menu
         stateManager.attach(startAppState);
         
         bulletAppState = new BulletAppState(); //physics

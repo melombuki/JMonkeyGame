@@ -88,7 +88,6 @@ public class PlayAppState extends AbstractAppState implements
                 FastMath.HALF_PI, Vector3f.UNIT_Y);
     private boolean isStart = true; //fixes bug where ball is sometimes hit at start of turn
     private Node cube = new Node("Cube");
-    private boolean roundOver = false; //true when there are not more targets to hit or time is up
     
     // Temporary vectors used on each frame.
     // They here to avoid instanciating new vectors on each frame
@@ -229,9 +228,6 @@ public class PlayAppState extends AbstractAppState implements
         chaseCam.setMinDistance(5.0f);
         chaseCam.setMaxVerticalRotation(FastMath.QUARTER_PI);
         chaseCam.setInvertVerticalAxis(true);
-             
-//        // Rest start location and zero out any movement speed        
-//        left = false; right = false; up = false; down = false;
         
         // Set player start place
         player.setPhysicsLocation(new Vector3f(0, 10, 0));
@@ -305,28 +301,11 @@ public class PlayAppState extends AbstractAppState implements
             }
         }
         
-        // Check if one turn is completed (i.e. all balls hit)
+        // Check if round is completed (i.e. all balls hit), or the game is over
         if(!isRemaining) {
-            // Start a delay timer
             // Game over. No rounds left, quit this appstate
-            if(currentRound == totalRounds) {
-                bulletAppState.setEnabled(false);
-                setEnabled(false);
-                currentRound = 1;
-                resetLevel();
-                stateManager.getState(GuiAppState.class).setEnabled(true);
-                stateManager.getState(GuiAppState.class).goToStart();
-            } else { // Just the end the current round               
-                // Go to next round and reset the player position and balls
-                currentRound++;
-                resetLevel();
-                isStart = true;
-                
-                // Pause the game for some light reading first
-                setEnabled(false);
-                stateManager.getState(GuiAppState.class).setEnabled(true);
-                stateManager.getState(GuiAppState.class).goToPause();
-            }
+            if(currentRound == totalRounds) {gameOver();}        
+            else {roundOver();} // Just the end the current round
         }
         
         // Make the balls move towards the player.
@@ -736,6 +715,13 @@ public class PlayAppState extends AbstractAppState implements
     }
     
     /*
+     * This method returns the total rounds to be played.
+     */
+    public int getTotalRounds() {
+        return totalRounds;
+    }
+    
+    /*
      * This method makes the floating balls move around straight to the player.
      */
     public void updateBallPositions() {
@@ -747,5 +733,38 @@ public class PlayAppState extends AbstractAppState implements
             goals[i].getRigidBodyControl().setLinearVelocity(v.mult(0.5f));
         }
         
+    }
+    
+    /*
+     * This method hadles what to do when the game is over, i.e. all rounds have
+     * been completed by the player.
+     */
+    public void gameOver() {
+        // Disable the physics and game play app states
+        bulletAppState.setEnabled(false);
+        setEnabled(false);
+        
+        // Reset everything else in case player starts over 
+        currentRound = 1; //reset the current round back to beginning
+        resetLevel();
+        stateManager.getState(GuiAppState.class).setEnabled(true);
+        stateManager.getState(GuiAppState.class).goToStart();
+    }
+    
+    /*
+     * This method hadles what to do when a round is over, i.e. all enemies have
+     * been destroyed, or the time limit has been reached.
+     */
+    public void roundOver() {
+        // Go to next round and reset the player position and balls
+        currentRound++;
+        resetLevel();
+        isStart = true;
+
+        // Pause the game for some light reading first
+        setEnabled(false);
+        bulletAppState.setEnabled(false);
+        stateManager.getState(GuiAppState.class).setEnabled(true);
+        stateManager.getState(GuiAppState.class).goToPause();
     }
 }
