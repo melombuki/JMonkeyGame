@@ -45,10 +45,10 @@ import com.jme3.system.AppSettings;
  * @author Joshua P. Hemen
  */
 public class HemenFinalProject extends SimpleApplication {
-    private GuiAppState   startAppState;
+    private GuiAppState     startAppState;
     private PlayAppState    playAppState;
     private BulletAppState  bulletAppState;
-    private boolean isStart = true;
+    private boolean         isStart = true;
     
     public static void main(String[] args) {
         HemenFinalProject app = new HemenFinalProject();

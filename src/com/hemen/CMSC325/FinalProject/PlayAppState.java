@@ -141,8 +141,7 @@ public class PlayAppState extends AbstractAppState implements
         bullet.setTextureMode(Sphere.TextureMode.Projected);
         bulletCollisionShape = new SphereCollisionShape(0.1f);
         
-        // We re-use the flyby camera for rotation, while positioning is handled by physics
-        //flyCam.setMoveSpeed(100);
+        // Set up the lights for the scene
         setUpLight();
     
         // Set up special effects
@@ -189,7 +188,7 @@ public class PlayAppState extends AbstractAppState implements
         // We also put the player in its starting position.
         playerNode = new Node("player");
         CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(1.5f, 3f, 1);
-        player = new CharacterControl(capsuleShape, 0.05f);
+        player = new CharacterControl(capsuleShape, 0.05f);      
         player.setJumpSpeed(20);
         player.setFallSpeed(30);
         player.setGravity(30);
@@ -202,7 +201,7 @@ public class PlayAppState extends AbstractAppState implements
         // Set up the hover Jet
         Spatial hoverJet = assetManager.loadModel("Models/Cube.001.mesh.xml");
         Material mat_hj = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
-        
+
         mat_hj.setTexture("LightMap", assetManager.loadTexture(
                 new TextureKey("Models/FighterBomber.png", false)));
         hoverJet.setMaterial(mat_hj);
@@ -210,18 +209,12 @@ public class PlayAppState extends AbstractAppState implements
         hoverJet.setLocalScale(3f);
         hoverJetQ = Quaternion.IDENTITY;
         playerNode.attachChild(hoverJet);
-        
-        // Set up the camera aiming location
-        Node gunFocalPoint = new Node("gunFocalPoint");
-        gunFocalPoint.setLocalTranslation(
-                hoverJet.getLocalTranslation().add(new Vector3f(0, 2.5f, 0)));
-        playerNode.attachChild(gunFocalPoint);
 
         // Set up the camera bits
         flyCam.setEnabled(false);
-        chaseCam = new ChaseCamera(cam, gunFocalPoint, inputManager);
+        chaseCam = new ChaseCamera(cam, playerNode, inputManager);
         chaseCam.setSmoothMotion(false);
-        chaseCam.setLookAtOffset(Vector3f.UNIT_Y.mult(3));
+        chaseCam.setLookAtOffset(new Vector3f(0, 6f, -2f));
         chaseCam.setDefaultDistance(5.0f);
         chaseCam.setZoomSensitivity(0);
         chaseCam.setDragToRotate(false);
@@ -249,7 +242,7 @@ public class PlayAppState extends AbstractAppState implements
    */
     @Override
     public void update(float tpf) {
-        // Fixes bug where ball may be hit at beginning of players turn
+        // Fixes bug where ball may show as hit at beginning of players turn
         if(isStart) {
             for(int i = 0; i < MAX_OBS; i++) {
                 goals[i].unhitBall();
@@ -532,7 +525,7 @@ public class PlayAppState extends AbstractAppState implements
             // Problem was collision with character physics control.
             // Had to move the starting location of the bullet outside of the 
             // character's capsuleCollisionShape
-            bulletg.setLocalTranslation(cam.getLocation().addLocal(cam.getDirection().normalize().mult(5f)));
+            bulletg.setLocalTranslation(cam.getLocation().addLocal(cam.getDirection().normalize().mult(2f)));
             // New chaseCam fixes the problem and makes vehicle much better
             //bulletg.setLocalTranslation(cam.getLocation());
             bulletg.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
@@ -726,13 +719,12 @@ public class PlayAppState extends AbstractAppState implements
      */
     public void updateBallPositions() {
         for(int i = 0; i < MAX_OBS; i++) {
-            // Get a random direction from Ken Perlin's ImprovedNoise class
+            // Make the balls move directly towards the player's location
             Vector3f v = player.getPhysicsLocation();
             v = v.subtract(goals[i].getRigidBodyControl().getPhysicsLocation());
             v.setY(0);
             goals[i].getRigidBodyControl().setLinearVelocity(v.mult(0.5f));
         }
-        
     }
     
     /*

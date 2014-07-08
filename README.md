@@ -8,11 +8,10 @@ Future plans include but are not limited to the following:
 Character:
 -Update the player vehicle with a better skin
 -Add different types of weapons
--Fix the camera so that it is always directly behind the vehicle instead of the weird cicrular offset it has now
 
 Enemies:
 -Add different kinds of targets. (need to create meshes for them and give them skins as well)
--Add some kind of AI so they do not just ceepilly follow the player around like lost kittens
+-Add some kind of AI so they do not just creepilly follow the player around like lost kittens
 -Add spawning of new targets and get rid of the old ones instead of just changing colors and remaining in the map
 
 Environment:
@@ -21,7 +20,6 @@ Environment:
 -Create a new level of my own design
 
 Gameplay:
--End the game after the timer reaches 5 minutes total for a single round
 -Add the total score to the hud display, and the score for each hit item
 
-There will be more added to the wish list later.
+This list will be updated sporadically as I think of things to add or change.

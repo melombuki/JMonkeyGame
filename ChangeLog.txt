@@ -1,0 +1,3 @@
+7/8/2014 - 
+-Fixed the camera so that it is always directly behind the vehicle instead of the weird circular offset it has now
+-End the game after the timer reaches 5 minutes total for a single round
