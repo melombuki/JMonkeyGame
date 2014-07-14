@@ -1,3 +1,13 @@
+//TODO: get rid of the walls for the new largeScene. No longer need them as
+// the mountains fence the char in anyway. 
+// 1. Create a large invisible plane
+// over the entire level to stop balls from getting out. Place it at the
+// lowest point of the highest border mountain.
+// 2. Add invisible plane triggers to case enemies to spawn at some location.
+// 3. Create more types of enemies and allow them to shoot at the player.
+// 4. Give yourself a health meter.
+// 5. Add a scoring mechanism.
+
 package com.hemen.CMSC325.FinalProject;
 
 import com.jme3.app.Application;
