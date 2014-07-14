@@ -44,7 +44,7 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Sphere;
-import java.util.Random;
+//import java.util.Random;
 
 /**
  * This class contains all of the necessary objects and variables for the actual
@@ -147,18 +147,18 @@ public class PlayAppState extends AbstractAppState implements
         // Set up special effects
         shockwave = new Shockwave(rootNode, assetManager);
 
-        // We load the scene from the zip file and adjust its size.
-        assetManager.registerLocator("town.zip", ZipLocator.class);
-        sceneModel = assetManager.loadModel("main.scene");
-        sceneModel.setLocalScale(2f);
-        initInvisibleWalls();
+//        // We load the scene from the zip file and adjust its size.
+//        assetManager.registerLocator("town.zip", ZipLocator.class);
+//        sceneModel = assetManager.loadModel("main.scene");
+//        sceneModel.setLocalScale(2f);
+//        initInvisibleWalls();
               
-//        //Testing ---- TODO: Need to make it with only triangles,
-//        //Problem: Currently get arryIndexOutOfBoundsException with it sometimes
-//        // We load the scene
-//        sceneModel = assetManager.loadModel("Scenes/NewPlanet.j3o");
-//        sceneModel.setLocalTranslation(0, -10, 0);
-//        //Testing ----
+        //Testing ---- TODO: Need to make it with only triangles,
+        //Problem: Currently get arryIndexOutOfBoundsException with it sometimes
+        // We load the scene
+        sceneModel = assetManager.loadModel("Scenes/largeScene.j3o");
+        sceneModel.setLocalTranslation(0, -12, 0);
+        //Testing ----
 
         // Init materials
         initMaterials();
@@ -174,12 +174,12 @@ public class PlayAppState extends AbstractAppState implements
         initObjLocations(objLocations);
         setUpObjectives(objLocations, ball_A);
         
-        // We set up collision detection for the scene by creating a
-        // compound collision shape and a static RigidBodyControl with mass zero.
-        CollisionShape sceneShape =
-                CollisionShapeFactory.createMeshShape((Node) sceneModel);
-        landscape = new RigidBodyControl(sceneShape, 0);
-        sceneModel.addControl(landscape);
+//        // We set up collision detection for the scene by creating a
+//        // compound collision shape and a static RigidBodyControl with mass zero.
+//        CollisionShape sceneShape =
+//                CollisionShapeFactory.createMeshShape((Node) sceneModel);
+//        landscape = new RigidBodyControl(sceneShape, 0);
+//        sceneModel.addControl(landscape);
 
         // We set up collision detection for the player by creating
         // a capsule collision shape and a CharacterControl.
@@ -198,6 +198,8 @@ public class PlayAppState extends AbstractAppState implements
         shotSound = new AudioNode(assetManager, "Sound/Effects/Gun.wav");
         boomSound = new AudioNode(assetManager, "Sound/Effects/Bang.wav");
         boomSound.setPositional(true);
+        rootNode.attachChild(shotSound); //make the positional sound actually work
+        rootNode.attachChild(boomSound);
         
         // Set up the hover Jet
         Spatial hoverJet = assetManager.loadModel("Models/FighterBomber.mesh.xml");
@@ -207,7 +209,7 @@ public class PlayAppState extends AbstractAppState implements
                 new TextureKey("Models/FighterBomber.png", false)));
         hoverJet.setMaterial(mat_hj);
         hoverJet.setName("hoverJet");
-        hoverJet.setLocalScale(3f);
+        //hoverJet.setLocalScale(3f);
         hoverJetQ = Quaternion.IDENTITY;
         playerNode.attachChild(hoverJet);
 
@@ -216,19 +218,22 @@ public class PlayAppState extends AbstractAppState implements
         chaseCam = new ChaseCamera(cam, playerNode, inputManager);
         chaseCam.setSmoothMotion(false);
         chaseCam.setLookAtOffset(new Vector3f(0, 6f, 0));
-        chaseCam.setDefaultDistance(5.0f);
         chaseCam.setZoomSensitivity(0);
         chaseCam.setDragToRotate(false);
-        //chaseCam.setMinDistance(5.0f);
+        chaseCam.setMinVerticalRotation(-(FastMath.HALF_PI+ 0.7f));
         chaseCam.setMaxVerticalRotation(FastMath.QUARTER_PI);
         chaseCam.setInvertVerticalAxis(true);
         
         // Set player start place
-        player.setPhysicsLocation(new Vector3f(0, 10, 0));
+        //player.setPhysicsLocation(new Vector3f(-3f, 10f, 122f)); //town.zip
+        //player.setPhysicsLocation(new Vector3f(0, 10f, 100f)); //newScene
+        player.setPhysicsLocation(new Vector3f(-480, 30f, -480f)); //largeScene
+        cam.setRotation(new Quaternion(-0.008805412f, 0.41634694f, 0.0040324354f, 0.90915424f)); //largeScene
 
         // We attach the scene and the player to the rootnode and the physics space,
         // to make them appear in the game world.
-        bulletAppState.getPhysicsSpace().add(landscape);
+        //bulletAppState.getPhysicsSpace().add(landscape);
+        bulletAppState.getPhysicsSpace().addAll(sceneModel);
         bulletAppState.getPhysicsSpace().add(playerNode);
         bulletAppState.getPhysicsSpace().add(player);
         bulletAppState.getPhysicsSpace().addCollisionListener(this);
@@ -324,25 +329,27 @@ public class PlayAppState extends AbstractAppState implements
         super.setEnabled(enabled);
         
         if(enabled) {
-            // Enable the physics app state
-            bulletAppState.setEnabled(true);
-            
             // Set up a color for the sky
             viewPort.setBackgroundColor(new ColorRGBA(0.7f, 0.8f, 1f, 1f));
             
-            // This block is where everything get attached rootNode
+            // This block is where everything gets attached rootNode
             for(int i = 0; i < MAX_OBS; i++) {
                 rootNode.attachChild(goals[i].getGeo());
             }
             rootNode.attachChild(sceneModel);
             rootNode.addLight(al);
             rootNode.addLight(dl);
+            rootNode.attachChild(shotSound);
+            rootNode.attachChild(boomSound);
             rootNode.attachChild(shockwave.getShockWave());
             rootNode.attachChild(playerNode);
             rootNode.attachChild(cube);
             // Establish player controls
             initControls();
             initCrossHairs(true);
+            
+            // Enable the physics app state
+            bulletAppState.setEnabled(true);
         }
         else {
             // Remove playser input controls
@@ -362,17 +369,23 @@ public class PlayAppState extends AbstractAppState implements
      * coordinates and adding a fixed Y value to create the final 3D vector
      */ 
     public void initObjLocations(Vector3f[] pts) {
-        float theta, radius;
-        Random rand = new Random();
-
-        // Create the random locations
+//        float theta, radius;
+//        Random rand = new Random();
+//
+//        // Create the random locations for Town.zip /player start at 0,10,0
+//        for(int i = 0; i < MAX_OBS; i++) {
+//            radius = (rand.nextFloat()*42)+18;         //produce a number [18-60)
+//            theta = rand.nextFloat()*FastMath.TWO_PI; //a number [0,2*pi)
+//
+//            //Position center around statue at approx (40, 10.0f, -17), not origin
+//            pts[i] = new Vector3f(40 + (float)(radius*Math.cos(theta)), 
+//                    10.0f, -17 + (float)(radius*Math.sin(theta)));
+//        }
+        
+         // Create the random locations for my world
         for(int i = 0; i < MAX_OBS; i++) {
-            radius = (rand.nextFloat()*42)+18;         //produce a number [18-60)
-            theta = rand.nextFloat()*FastMath.TWO_PI; //a number [0,2*pi)
-
             //Position center around statue at approx (40, 10.0f, -17), not origin
-            pts[i] = new Vector3f(40 + (float)(radius*Math.cos(theta)), 
-                    10.0f, -17 + (float)(radius*Math.sin(theta)));
+            pts[i] = new Vector3f(((i+1)*20)-40, 50, -120);
         }
     }
 
@@ -576,8 +589,10 @@ public class PlayAppState extends AbstractAppState implements
         }
         
         // Reset the player back to origin and stop all movements
-        player.setPhysicsLocation(new Vector3f(0, 10, 0));
-        //playerNode.setLocalTranslation(0, 10, 0);
+        //playerNode.setLocalTranslation(0, 10, 0); town.xip
+        //player.setPhysicsLocation(new Vector3f(0, 10f, 100f)); //newScene
+        player.setPhysicsLocation(new Vector3f(-480, 30f, -480f)); //largeScene
+        new Quaternion(-0.008805412f, 0.41634694f, 0.0040324354f, 0.90915424f); //largeScene
 
         // Update actual ball/ball physics locations with new locations and reattach
         Vector3f[] objLocations = new Vector3f[MAX_OBS];
@@ -651,7 +666,7 @@ public class PlayAppState extends AbstractAppState implements
      * bounds to match the world.
      */
     public void initInvisibleWalls () {
-        // Create the standard wall template for all wall geometries
+        // Create the standard wall template for all wall geometries for Town.zip
         Box bLR = new Box(100, 0.1f, 400);
         Box bFB = new Box(600, 0.1f, 100);
         
@@ -679,7 +694,7 @@ public class PlayAppState extends AbstractAppState implements
         cubeFront.addControl(cubeFrontPhys);
         cubeBack.addControl(cubeBackPhys);
         
-        // Rotate & Translate them appropriately
+        // Rotate & Translate them appropriately  for Town.zip
         cubeLeftPhys.setPhysicsRotation(new Quaternion(0, 0, -1, 1)); //90 deg around Z
         cubeLeftPhys.setPhysicsLocation(new Vector3f(-158f, 0f, 0f));        
         cubeRightPhys.setPhysicsRotation(new Quaternion(0, 0, 1, 1));//-90 deg around Z
@@ -718,7 +733,6 @@ public class PlayAppState extends AbstractAppState implements
             // Make the balls move directly towards the player's location
             Vector3f v = player.getPhysicsLocation();
             v = v.subtract(goals[i].getRigidBodyControl().getPhysicsLocation());
-            v.setY(0);
             goals[i].getRigidBodyControl().setLinearVelocity(v.mult(0.5f));
         }
     }
