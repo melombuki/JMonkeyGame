@@ -16,7 +16,6 @@ import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.asset.AssetManager;
 import com.jme3.asset.TextureKey;
-import com.jme3.asset.plugins.ZipLocator;
 import com.jme3.audio.AudioNode;
 import com.jme3.audio.Listener;
 import com.jme3.bullet.BulletAppState;
@@ -24,11 +23,9 @@ import com.jme3.bullet.PhysicsSpace;
 import com.jme3.bullet.collision.PhysicsCollisionEvent;
 import com.jme3.bullet.collision.PhysicsCollisionListener;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
-import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.collision.shapes.SphereCollisionShape;
 import com.jme3.bullet.control.CharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
-import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
 import com.jme3.input.ChaseCamera;
@@ -54,7 +51,6 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Sphere;
-//import java.util.Random;
 
 /**
  * This class contains all of the necessary objects and variables for the actual
@@ -83,7 +79,6 @@ public class PlayAppState extends AbstractAppState implements
     private static final int MAX_SPAWN = 2; //# of respawns for enemies
     private Spatial sceneModel;
     private BulletAppState bulletAppState;
-    private RigidBodyControl landscape;
     private Node playerNode; //wraps player CharControl with a name
     private CharacterControl player;
     private Vector3f walkDirection = new Vector3f();
@@ -145,6 +140,7 @@ public class PlayAppState extends AbstractAppState implements
         
         // Get the physics app state
         bulletAppState = stateManager.getState(BulletAppState.class);
+        bulletAppState.getPhysicsSpace().setGravity(new Vector3f(0, -20f, 0));
         //bulletAppState.getPhysicsSpace().enableDebug(assetManager);
 
         // Set up the bullet object
@@ -160,14 +156,14 @@ public class PlayAppState extends AbstractAppState implements
 
 //        // Init the spawn trigger walls
 //        initInvisibleWalls();
-              
+
         // We load the scene
         sceneModel = assetManager.loadModel("Scenes/largeScene.j3o");
         sceneModel.setLocalTranslation(0, -12, 0);
 
         // Init materials
         initMaterials();
-        
+
         // Init text for crosshair text
         initCrossHairText();  
 
@@ -369,20 +365,7 @@ public class PlayAppState extends AbstractAppState implements
      * scene graph of town.zip file by converting from polar to rectagular
      * coordinates and adding a fixed Y value to create the final 3D vector.
      */ 
-    public void initObjLocations(Vector3f[] pts) {
-//        float theta, radius;
-//        Random rand = new Random();
-//
-//        // Create the random locations for Town.zip /player start at 0,10,0
-//        for(int i = 0; i < MAX_OBS; i++) {
-//            radius = (rand.nextFloat()*42)+18;         //produce a number [18-60)
-//            theta = rand.nextFloat()*FastMath.TWO_PI; //a number [0,2*pi)
-//
-//            //Position center around statue at approx (40, 10.0f, -17), not origin
-//            pts[i] = new Vector3f(40 + (float)(radius*Math.cos(theta)), 
-//                    10.0f, -17 + (float)(radius*Math.sin(theta)));
-//        }
-        
+    public void initObjLocations(Vector3f[] pts) {       
          // Create the random locations for my world
         for(int i = 0; i < MAX_OBS; i++) {
             //Position center around statue at approx (40, 10.0f, -17), not origin
@@ -759,8 +742,10 @@ public class PlayAppState extends AbstractAppState implements
         for(int i = 0; i < MAX_OBS; i++) {
             // Make the balls move directly towards the player's location
             Vector3f v = player.getPhysicsLocation();
-            v = v.subtract(goals[i].getRigidBodyControl().getPhysicsLocation());
-            goals[i].getRigidBodyControl().setLinearVelocity(v.mult(0.5f));
+            v = v.subtract(goals[i].getRigidBodyControl().getPhysicsLocation()).mult(0.7f);
+            //v.setY(0); //make them float in the air for ever
+            goals[i].getRigidBodyControl().setLinearVelocity(v.mult(new Vector3f(0.25f, 1, 0.25f)));
+            goals[i].getRigidBodyControl().setLinearVelocity(v);
         }
     }
     
