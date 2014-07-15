@@ -141,7 +141,7 @@ public class PlayAppState extends AbstractAppState implements
         // Get the physics app state
         bulletAppState = stateManager.getState(BulletAppState.class);
         bulletAppState.getPhysicsSpace().setGravity(new Vector3f(0, -20f, 0));
-        //bulletAppState.getPhysicsSpace().enableDebug(assetManager);
+        bulletAppState.getPhysicsSpace().enableDebug(assetManager);
 
         // Set up the bullet object
         bullet = new Sphere(32, 32, 0.4f, true, false);
@@ -154,8 +154,8 @@ public class PlayAppState extends AbstractAppState implements
         // Set up special effects
         shockwave = new Shockwave(rootNode, assetManager);
 
-//        // Init the spawn trigger walls
-//        initInvisibleWalls();
+        // Init the spawn trigger walls
+        initInvisibleWalls();
 
         // We load the scene
         sceneModel = assetManager.loadModel("Scenes/largeScene.j3o");
@@ -174,7 +174,6 @@ public class PlayAppState extends AbstractAppState implements
         // We load the 3 objectives for the player to hit.
         initObjLocations(objLocations);
         setUpObjectives(objLocations, ball_A);
-        spawnCount++;
 
         // We set up collision detection for the player by creating
         // a capsule collision shape and a CharacterControl.
@@ -220,7 +219,7 @@ public class PlayAppState extends AbstractAppState implements
         chaseCam.setInvertVerticalAxis(true);
         
         // Move the player to the starting location
-        player.setPhysicsLocation(new Vector3f(-480, 30f, -480f));
+        player.setPhysicsLocation(new Vector3f(-480, 8f, -480f));
 
         // We attach the scene and the player to the rootnode and the physics space,
         // to make them appear in the game world.
@@ -243,7 +242,7 @@ public class PlayAppState extends AbstractAppState implements
         if(isStart) {
             for(int i = 0; i < MAX_OBS; i++) {
                 goals[i].unhitBall();
-                //set appropriate color for ball
+                // Set appropriate color for ball
                 goals[i].getGeo().setMaterial(ball_A);
             }
         }
@@ -293,10 +292,11 @@ public class PlayAppState extends AbstractAppState implements
         
         // Check if round is completed (i.e. all balls hit), or the game is over
         if(!isRemaining) {
-            if(spawnCount < MAX_SPAWN) {
+            if(spawnCount < MAX_SPAWN - 1) {
                 resetBalls();
                 spawnCount++;
             } else {
+                spawnCount = 0; //reset the counter
                 // Game over. No rounds left, quit this appstate
                 if(currentRound == totalRounds) {gameOver();}
                 else {roundOver();} // Just the end the current round
@@ -339,7 +339,6 @@ public class PlayAppState extends AbstractAppState implements
             rootNode.attachChild(boomSound);
             rootNode.attachChild(shockwave.getShockWave());
             rootNode.attachChild(playerNode);
-//            rootNode.attachChild(cube); //used for town.zip
             
             // Establish player controls
             initControls();
@@ -361,15 +360,14 @@ public class PlayAppState extends AbstractAppState implements
     }
     
     /*
-     * This method creates a new random location in donut around statue in 
-     * scene graph of town.zip file by converting from polar to rectagular
-     * coordinates and adding a fixed Y value to create the final 3D vector.
+     * This method creates a sets the locations of three spawn points for the
+     * first round of balls.
      */ 
     public void initObjLocations(Vector3f[] pts) {       
          // Create the random locations for my world
         for(int i = 0; i < MAX_OBS; i++) {
             //Position center around statue at approx (40, 10.0f, -17), not origin
-            pts[i] = new Vector3f(50, 50, -456+(i*75));
+            pts[i] = new Vector3f(50, 12, -456+(i*75));
         }
     }
 
@@ -587,9 +585,7 @@ public class PlayAppState extends AbstractAppState implements
      */
     public void resetPlayer() {
         // Reset the player back to origin and stop all movements
-        //playerNode.setLocalTranslation(0, 10, 0); town.xip
-        //player.setPhysicsLocation(new Vector3f(0, 10f, 100f)); //newScene
-        player.setPhysicsLocation(new Vector3f(-480, 30f, -480f)); //largeScene
+        player.setPhysicsLocation(new Vector3f(-480, 8f, -480f)); //largeScene
     }
     
     /*
@@ -672,53 +668,30 @@ public class PlayAppState extends AbstractAppState implements
     }
     
     /*
-     * This method prevents the player from falling off the map. Need to fix the
-     * bounds to match the world.
+     * This method prevents any scene objects from flying off into outerspace.
      */
     public void initInvisibleWalls () {
-        // Create the standard wall template for all wall geometries for Town.zip
-        Box bLR = new Box(100, 0.1f, 400);
-        Box bFB = new Box(600, 0.1f, 100);
+        // Create an invisible top cover to prevent rouge objects going into outerspace
+        Box cover = new Box(1024, 0.1f, 1024);
         
-        // Create the 4 sides of the edge of the town
-        Geometry cubeLeft = new Geometry("cubeLeft", bLR);
-        Geometry cubeRight = new Geometry("cubeRight", bLR);
-        Geometry cubeFront = new Geometry("cubeFront", bFB);
-        Geometry cubeBack = new Geometry("cubeBack", bFB);
+        // Create the shape
+        Geometry cube = new Geometry("cube", cover);
         
         // Set the colors to be invisible
-        cubeLeft.setMaterial(mat_invis);
-        cubeRight.setMaterial(mat_invis);
-        cubeFront.setMaterial(mat_invis);
-        cubeBack.setMaterial(mat_invis);
+        cube.setMaterial(mat_invis);
                 
-        // Set up the static rigid body physics controls for the wall         
-        RigidBodyControl cubeLeftPhys = new RigidBodyControl(0);
-        RigidBodyControl cubeRightPhys = new RigidBodyControl(0);
-        RigidBodyControl cubeFrontPhys = new RigidBodyControl(0);
-        RigidBodyControl cubeBackPhys = new RigidBodyControl(0);
+        // Set up the static rigid body physics control       
+        RigidBodyControl cubePhys = new RigidBodyControl(0);
         
-        // Attach the controls to the walls
-        cubeLeft.addControl(cubeLeftPhys);
-        cubeRight.addControl(cubeRightPhys);
-        cubeFront.addControl(cubeFrontPhys);
-        cubeBack.addControl(cubeBackPhys);
+        // Attach the control to the wall
+        cube.addControl(cubePhys);
         
-        // Rotate & Translate them appropriately  for Town.zip
-        cubeLeftPhys.setPhysicsRotation(new Quaternion(0, 0, -1, 1)); //90 deg around Z
-        cubeLeftPhys.setPhysicsLocation(new Vector3f(-158f, 0f, 0f));        
-        cubeRightPhys.setPhysicsRotation(new Quaternion(0, 0, 1, 1));//-90 deg around Z
-        cubeRightPhys.setPhysicsLocation(new Vector3f(440f, 0f, 0f));        
-        cubeBackPhys.setPhysicsRotation(new Quaternion(-1, 0, 0, 1));//90 deg around X
-        cubeBackPhys.setPhysicsLocation(new Vector3f(0f, 0f, -212f));       
-        cubeFrontPhys.setPhysicsRotation(new Quaternion(-1, 0, 0, 1));//-90 deg around X
-        cubeFrontPhys.setPhysicsLocation(new Vector3f(0f, 0f, 182f));       
+        // Translate them appropriately
+        cubePhys.setPhysicsLocation(new Vector3f(0, 20, 0));        
+     
         
-        // Add the physical controls to the physics space
-        bulletAppState.getPhysicsSpace().add(cubeLeftPhys);
-        bulletAppState.getPhysicsSpace().add(cubeRightPhys);
-        bulletAppState.getPhysicsSpace().add(cubeFrontPhys);
-        bulletAppState.getPhysicsSpace().add(cubeBackPhys);
+        // Add the physical control to the physics space
+        bulletAppState.getPhysicsSpace().add(cubePhys);
     }
     
     /*
