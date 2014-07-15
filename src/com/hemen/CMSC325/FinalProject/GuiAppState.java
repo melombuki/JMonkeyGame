@@ -158,8 +158,6 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
             // Clear the object hit line if not already cleared.
             nifty.getCurrentScreen().findElementByName(
                     "hitObject").getRenderer(TextRenderer.class).setText("");
-            
-            //timer.reset(); //restart the timer
         }
     }
 

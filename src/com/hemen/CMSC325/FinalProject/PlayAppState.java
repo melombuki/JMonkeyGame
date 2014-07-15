@@ -80,6 +80,7 @@ public class PlayAppState extends AbstractAppState implements
     
     // Appstate specific fields
     private static final int MAX_OBS = 3; //number of balls player must hit
+    private static final int MAX_SPAWN = 2; //# of respawns for enemies
     private Spatial sceneModel;
     private BulletAppState bulletAppState;
     private RigidBodyControl landscape;
@@ -91,13 +92,13 @@ public class PlayAppState extends AbstractAppState implements
     private Material ball_hit, ball_A, ball_B, mat_bullet, mat_invis;
     private int totalRounds = 0; //1 round for each player * desired # of cycles
     private int currentRound = 1;
+    private int spawnCount = 0; //the number current of spawns
     private AmbientLight al;
     private DirectionalLight dl;
     private Quaternion hoverJetQ;
     private Quaternion yaw90 = new Quaternion().fromAngleAxis(
                 FastMath.HALF_PI, Vector3f.UNIT_Y);
     private boolean isStart = true; //fixes bug where ball is sometimes hit at start of turn
-    private Node cube = new Node("Cube");
     
     // Temporary vectors used on each frame.
     // They here to avoid instanciating new vectors on each frame
@@ -146,7 +147,7 @@ public class PlayAppState extends AbstractAppState implements
         bulletAppState = stateManager.getState(BulletAppState.class);
         //bulletAppState.getPhysicsSpace().enableDebug(assetManager);
 
-        //Set up the bullet object
+        // Set up the bullet object
         bullet = new Sphere(32, 32, 0.4f, true, false);
         bullet.setTextureMode(Sphere.TextureMode.Projected);
         bulletCollisionShape = new SphereCollisionShape(0.1f);
@@ -157,24 +158,18 @@ public class PlayAppState extends AbstractAppState implements
         // Set up special effects
         shockwave = new Shockwave(rootNode, assetManager);
 
-//        // We load the scene from the zip file and adjust its size.
-//        assetManager.registerLocator("town.zip", ZipLocator.class);
-//        sceneModel = assetManager.loadModel("main.scene");
-//        sceneModel.setLocalScale(2f);
+//        // Init the spawn trigger walls
 //        initInvisibleWalls();
               
-        //Testing ---- TODO: Need to make it with only triangles,
-        //Problem: Currently get arryIndexOutOfBoundsException with it sometimes
         // We load the scene
         sceneModel = assetManager.loadModel("Scenes/largeScene.j3o");
         sceneModel.setLocalTranslation(0, -12, 0);
-        //Testing ----
 
         // Init materials
         initMaterials();
         
         // Init text for crosshair text
-        initCrossHairText();    
+        initCrossHairText();  
 
         // Init all arrays
         Vector3f[] objLocations = new Vector3f[MAX_OBS];
@@ -183,13 +178,7 @@ public class PlayAppState extends AbstractAppState implements
         // We load the 3 objectives for the player to hit.
         initObjLocations(objLocations);
         setUpObjectives(objLocations, ball_A);
-        
-//        // We set up collision detection for the scene by creating a
-//        // compound collision shape and a static RigidBodyControl with mass zero.
-//        CollisionShape sceneShape =
-//                CollisionShapeFactory.createMeshShape((Node) sceneModel);
-//        landscape = new RigidBodyControl(sceneShape, 0);
-//        sceneModel.addControl(landscape);
+        spawnCount++;
 
         // We set up collision detection for the player by creating
         // a capsule collision shape and a CharacterControl.
@@ -198,7 +187,7 @@ public class PlayAppState extends AbstractAppState implements
         // We also put the player in its starting position.
         playerNode = new Node("player");
         CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(1.5f, 3f, 1);
-        player = new CharacterControl(capsuleShape, 0.05f);      
+        player = new CharacterControl(capsuleShape, 0.05f);   
         player.setJumpSpeed(20);
         player.setFallSpeed(30);
         player.setGravity(30);
@@ -234,15 +223,11 @@ public class PlayAppState extends AbstractAppState implements
         chaseCam.setMaxVerticalRotation(FastMath.QUARTER_PI);
         chaseCam.setInvertVerticalAxis(true);
         
-        // Set player start place
-        //player.setPhysicsLocation(new Vector3f(-3f, 10f, 122f)); //town.zip
-        //player.setPhysicsLocation(new Vector3f(0, 10f, 100f)); //newScene
-        player.setPhysicsLocation(new Vector3f(-480, 30f, -480f)); //largeScene
-        cam.setRotation(new Quaternion(-0.008805412f, 0.41634694f, 0.0040324354f, 0.90915424f)); //largeScene
+        // Move the player to the starting location
+        player.setPhysicsLocation(new Vector3f(-480, 30f, -480f));
 
         // We attach the scene and the player to the rootnode and the physics space,
         // to make them appear in the game world.
-        //bulletAppState.getPhysicsSpace().add(landscape);
         bulletAppState.getPhysicsSpace().addAll(sceneModel);
         bulletAppState.getPhysicsSpace().add(playerNode);
         bulletAppState.getPhysicsSpace().add(player);
@@ -263,12 +248,12 @@ public class PlayAppState extends AbstractAppState implements
             for(int i = 0; i < MAX_OBS; i++) {
                 goals[i].unhitBall();
                 //set appropriate color for ball
-                goals[i].getGeo().setMaterial(ball_A); //color player 1
+                goals[i].getGeo().setMaterial(ball_A);
             }
         }
         
         // Handles player movement
-        camDir = cam.getDirection().multLocal(0.6f); // The use of multLocal here is to control the rate of movement multiplier for character walk speed. 
+        camDir = cam.getDirection().multLocal(0.6f); // The use of multLocal here is to control the rate of movement multiplier for character walk speed.
         camLeft = cam.getLeft().multLocal(0.4f);
         walkDirection.set(0, 0, 0);
         if (left) {
@@ -289,7 +274,7 @@ public class PlayAppState extends AbstractAppState implements
         Spatial hJ = rootNode.getChild("hoverJet");
         float angles[] = new float[3];
         if(hJ != null) {
-            hoverJetQ.slerp(cam.getRotation().mult(yaw90), 0.008f);
+            hoverJetQ.slerp(cam.getRotation().mult(yaw90), 0.025f);
             hoverJetQ.toAngles(angles);
             hoverJetQ = hoverJetQ.fromAngleAxis(
                     angles[1], Vector3f.UNIT_Y).normalizeLocal();
@@ -312,9 +297,14 @@ public class PlayAppState extends AbstractAppState implements
         
         // Check if round is completed (i.e. all balls hit), or the game is over
         if(!isRemaining) {
-            // Game over. No rounds left, quit this appstate
-            if(currentRound == totalRounds) {gameOver();}        
-            else {roundOver();} // Just the end the current round
+            if(spawnCount < MAX_SPAWN) {
+                resetBalls();
+                spawnCount++;
+            } else {
+                // Game over. No rounds left, quit this appstate
+                if(currentRound == totalRounds) {gameOver();}
+                else {roundOver();} // Just the end the current round
+            }
         }
         
         // Make the balls move towards the player.
@@ -353,7 +343,8 @@ public class PlayAppState extends AbstractAppState implements
             rootNode.attachChild(boomSound);
             rootNode.attachChild(shockwave.getShockWave());
             rootNode.attachChild(playerNode);
-            rootNode.attachChild(cube);
+//            rootNode.attachChild(cube); //used for town.zip
+            
             // Establish player controls
             initControls();
             initCrossHairs(true);
@@ -375,8 +366,8 @@ public class PlayAppState extends AbstractAppState implements
     
     /*
      * This method creates a new random location in donut around statue in 
-     * scene graph of town.zip file by converting from polar to rectagular 
-     * coordinates and adding a fixed Y value to create the final 3D vector
+     * scene graph of town.zip file by converting from polar to rectagular
+     * coordinates and adding a fixed Y value to create the final 3D vector.
      */ 
     public void initObjLocations(Vector3f[] pts) {
 //        float theta, radius;
@@ -395,12 +386,12 @@ public class PlayAppState extends AbstractAppState implements
          // Create the random locations for my world
         for(int i = 0; i < MAX_OBS; i++) {
             //Position center around statue at approx (40, 10.0f, -17), not origin
-            pts[i] = new Vector3f(((i+1)*20)-40, 50, -120);
+            pts[i] = new Vector3f(50, 50, -456+(i*75));
         }
     }
 
     /*
-     * This method fills an array of type myBall with new ball objects and 
+     * This method fills an array of type myBall with new ball objects and
      * attaches their physical controls.
      */
     public void setUpObjectives(Vector3f[] objLocations, Material ball_type) {
@@ -430,6 +421,8 @@ public class PlayAppState extends AbstractAppState implements
             if(!tempBall.isHit()) {
                 final Geometry geo = tempBall.getGeo();
                 geo.setMaterial(ball_hit); //set material to hit
+                rootNode.detachChild(geo);
+                bulletAppState.getPhysicsSpace().remove(geo);
                 tempBall.hitBall(); //update ball as hit
                 shockwave.explode(geo.getLocalTranslation()); //add special effect
                 boomSound.setLocalTranslation(geo.getLocalTranslation());
@@ -441,6 +434,8 @@ public class PlayAppState extends AbstractAppState implements
             if(!tempBall.isHit()) {
                 final Geometry geo = tempBall.getGeo();
                 geo.setMaterial(ball_hit); //set material to hit
+                rootNode.detachChild(geo);
+                bulletAppState.getPhysicsSpace().remove(geo);
                 tempBall.hitBall(); //update ball as hit
                 shockwave.explode(geo.getLocalTranslation()); //add special effect
                 boomSound.setLocalTranslation(geo.getLocalTranslation());
@@ -452,10 +447,10 @@ public class PlayAppState extends AbstractAppState implements
         
         // Remove the bullet physics control from the world
         if(NodeA.equals("bullet")) {
-            bulletAppState.getPhysicsSpace().remove(e.getNodeA().getControl(RigidBodyControl.class));
+            bulletAppState.getPhysicsSpace().remove(e.getNodeA());
             e.getNodeA().removeFromParent();
         } else if(NodeB.equals("bullet")) {
-            bulletAppState.getPhysicsSpace().remove(e.getNodeB().getControl(RigidBodyControl.class));
+            bulletAppState.getPhysicsSpace().remove(e.getNodeB());
             e.getNodeB().removeFromParent();
         }
     }
@@ -554,6 +549,9 @@ public class PlayAppState extends AbstractAppState implements
             rootNode.attachChild(bulletg);
             getPhysicsSpace().add(bulletg);
         }
+        if(binding.equals("reset")) {
+            resetBalls();
+        }
     }
 
     /*
@@ -566,12 +564,14 @@ public class PlayAppState extends AbstractAppState implements
         inputManager.addMapping("Down", new KeyTrigger(KeyInput.KEY_S));
         inputManager.addMapping("Jump", new KeyTrigger(KeyInput.KEY_SPACE));
         inputManager.addMapping("shoot", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
+        inputManager.addMapping("reset", new KeyTrigger(KeyInput.KEY_R)); //TESTING ONLY
         inputManager.addListener(this, "Left");
         inputManager.addListener(this, "Right");
         inputManager.addListener(this, "Up");
         inputManager.addListener(this, "Down");
         inputManager.addListener(this, "Jump");
         inputManager.addListener(this, "shoot");
+        inputManager.addListener(this, "reset");
     }
 
     /*
@@ -592,17 +592,32 @@ public class PlayAppState extends AbstractAppState implements
      * for one player.
      */
     private void resetLevel() { 
+        // Reset the balls back to start location
+        resetBalls();       
+        
+        // Reset the player back to start location and stop all movements
+        resetPlayer(); 
+    }
+    
+    /*
+     * This method places the character at the starting location.
+     */
+    public void resetPlayer() {
+        // Reset the player back to origin and stop all movements
+        //playerNode.setLocalTranslation(0, 10, 0); town.xip
+        //player.setPhysicsLocation(new Vector3f(0, 10f, 100f)); //newScene
+        player.setPhysicsLocation(new Vector3f(-480, 30f, -480f)); //largeScene
+    }
+    
+    /*
+     * This method resets the balls to the starting location.
+     */
+    public void resetBalls() {
         // Detach all balls and remove phyisics control
         for(int i = 0; i < MAX_OBS; i++) {
             rootNode.detachChildNamed("S" + i);
             bulletAppState.getPhysicsSpace().remove(goals[i].getGeo());
         }
-        
-        // Reset the player back to origin and stop all movements
-        //playerNode.setLocalTranslation(0, 10, 0); town.xip
-        //player.setPhysicsLocation(new Vector3f(0, 10f, 100f)); //newScene
-        player.setPhysicsLocation(new Vector3f(-480, 30f, -480f)); //largeScene
-        new Quaternion(-0.008805412f, 0.41634694f, 0.0040324354f, 0.90915424f); //largeScene
 
         // Update actual ball/ball physics locations with new locations and reattach
         Vector3f[] objLocations = new Vector3f[MAX_OBS];
@@ -627,9 +642,7 @@ public class PlayAppState extends AbstractAppState implements
             
             //reattach ball to scene graph
             rootNode.attachChild(g); 
-        }   
-        
-       
+        }      
     }
     
     /*
@@ -656,6 +669,10 @@ public class PlayAppState extends AbstractAppState implements
         }
     }
     
+    /*
+     * This method sets the total number of rounds a player will play before the
+     * game is over.
+     */
     public void setTotalRounds(int r) {
         totalRounds = r;
     }
@@ -768,14 +785,16 @@ public class PlayAppState extends AbstractAppState implements
      * been destroyed, or the time limit has been reached.
      */
     public void roundOver() {
+        // Pause the game for some light reading first
+        setEnabled(false);
+        bulletAppState.setEnabled(false);
+        
         // Go to next round and reset the player position and balls
         currentRound++;
         resetLevel();
         isStart = true;
 
-        // Pause the game for some light reading first
-        setEnabled(false);
-        bulletAppState.setEnabled(false);
+        // Here is the light reading
         stateManager.getState(GuiAppState.class).setEnabled(true);
         stateManager.getState(GuiAppState.class).goToPause();
     }
