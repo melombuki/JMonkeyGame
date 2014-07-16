@@ -1,12 +1,8 @@
 //TODO: get rid of the walls for the new largeScene. No longer need them as
 // the mountains fence the char in anyway. 
-// 1. Create a large invisible plane
-// over the entire level to stop balls from getting out. Place it at the
-// lowest point of the highest border mountain.
-// 2. Add invisible plane triggers to case enemies to spawn at some location.
-// 3. Create more types of enemies and allow them to shoot at the player.
-// 4. Give yourself a health meter.
-// 5. Add a scoring mechanism.
+// 1. Add invisible plane triggers to case enemies to spawn at some location.
+// 2. Create more types of enemies and allow them to shoot at the player.
+// 3. Give yourself a health meter.
 
 package com.hemen.CMSC325.FinalProject;
 
@@ -142,7 +138,7 @@ public class PlayAppState extends AbstractAppState implements
         // Get the physics app state
         bulletAppState = stateManager.getState(BulletAppState.class);
         bulletAppState.getPhysicsSpace().setGravity(new Vector3f(0, -20f, 0));
-        bulletAppState.getPhysicsSpace().enableDebug(assetManager);
+        //bulletAppState.getPhysicsSpace().enableDebug(assetManager);
 
         // Set up the bullet object
         bullet = new Sphere(32, 32, 0.4f, true, false);
@@ -748,14 +744,16 @@ public class PlayAppState extends AbstractAppState implements
     
     /*
      * This method hadles what to do when the game is over, i.e. all rounds have
-     * been completed by the player.
+     * been completed by the player. It freezes the physics, i.e. nothing
+     * can translate in the scene. And the camera freezes.
      */
     public void gameOver() {
         // Disable the physics and game play app states and look at the ship
         bulletAppState.setEnabled(false);
-        //chaseCam.setDragToRotate(true);
+
         chaseCam.setEnabled(false);
-        cam.lookAt(player.getPhysicsLocation().setY(-1), Vector3f.UNIT_Y);
+        cam.setLocation(new Vector3f(-499f, 18f, -480f));
+        cam.lookAt(new Vector3f(-480f, 12f, -480f), Vector3f.UNIT_Y);
         
         // Save any parting information for the player to see
         stateManager.getState(GuiAppState.class).setTotalPointsEnd(totalPoints);
@@ -767,8 +765,7 @@ public class PlayAppState extends AbstractAppState implements
         
         // Change the app state and go to appropriate screen
         stateManager.getState(GuiAppState.class).setEnabled(true);
-        stateManager.getState(GuiAppState.class).goToEnd();
-        
+        stateManager.getState(GuiAppState.class).goToEnd();       
     }
     
     /*
