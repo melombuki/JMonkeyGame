@@ -158,6 +158,10 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
             // Clear the object hit line if not already cleared.
             nifty.getCurrentScreen().findElementByName(
                     "hitObject").getRenderer(TextRenderer.class).setText("");
+            
+            // Clear the total points
+            nifty.getCurrentScreen().findElementByName(
+                    "totalPoints").getRenderer(TextRenderer.class).setText("Total Score: 0");
         }
     }
 
@@ -224,13 +228,24 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
      * amount of points they recieved for it, and updates the total points
      * displayed on screen.
      */
-    public void showHitObject(String name) {
+    public void showHitObject(String name, int points) {
+        Integer totalPoints;
+        
+        // Reset the show time marker
+        hitMark = timer.getTimeInSeconds();
+        
+        // Show what the user hit
         nifty.getCurrentScreen().findElementByName("hitObject").getRenderer(
-                TextRenderer.class).setText("You hit a " + name);
+                TextRenderer.class).setText("You hit a " + name + ". + " + points);
         
-        hitMark = timer.getTimeInSeconds(); //reset the show time marker
+        // Add the new points to the total
+        stateManager.getState(PlayAppState.class).addPoints(points);
         
-        //TODO: update the total points and points recieved for each different 
-        // type of object hit.
+        // Get the current total score
+        totalPoints = stateManager.getState(PlayAppState.class).getTotalPoints();
+        
+        // Show it
+        nifty.getCurrentScreen().findElementByName("totalPoints").getRenderer(
+                TextRenderer.class).setText("Total Score: " + totalPoints.toString());
     }
 }

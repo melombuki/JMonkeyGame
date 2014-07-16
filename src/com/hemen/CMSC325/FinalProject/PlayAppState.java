@@ -86,6 +86,7 @@ public class PlayAppState extends AbstractAppState implements
     private myBall[] goals;
     private Material ball_hit, ball_A, ball_B, mat_bullet, mat_invis;
     private int totalRounds = 0; //1 round for each player * desired # of cycles
+    private int totalPoints = 0;
     private int currentRound = 1;
     private int spawnCount = 0; //the number current of spawns
     private AmbientLight al;
@@ -407,8 +408,8 @@ public class PlayAppState extends AbstractAppState implements
                 tempBall.hitBall(); //update ball as hit
                 shockwave.explode(geo.getLocalTranslation()); //add special effect
                 boomSound.setLocalTranslation(geo.getLocalTranslation());
-                boomSound.playInstance(); //comment out to mute
-                stateManager.getState(GuiAppState.class).showHitObject("ball");
+//                boomSound.playInstance(); //comment out to mute
+                stateManager.getState(GuiAppState.class).showHitObject("ball", tempBall.points);
             }
             isStart = false; //there was a collision = no longer start of turn
         } else if((tempBall = getBall(NodeB, goals)) != null && NodeA.equals("bullet")) {  //check NodeB
@@ -420,8 +421,8 @@ public class PlayAppState extends AbstractAppState implements
                 tempBall.hitBall(); //update ball as hit
                 shockwave.explode(geo.getLocalTranslation()); //add special effect
                 boomSound.setLocalTranslation(geo.getLocalTranslation());
-                boomSound.playInstance();
-                stateManager.getState(GuiAppState.class).showHitObject("ball");
+//                boomSound.playInstance();
+                stateManager.getState(GuiAppState.class).showHitObject("ball", tempBall.points);
             }
             isStart = false; //there was a collision = no longer start of turn
         }
@@ -515,7 +516,7 @@ public class PlayAppState extends AbstractAppState implements
           player.jump();
         } else if (binding.equals("shoot") && value) {
             // Play the gun firing sound
-            shotSound.playInstance();
+//            shotSound.playInstance();
             
             // Create and move the bullet
             Geometry bulletg = new Geometry("bullet", bullet);
@@ -657,6 +658,20 @@ public class PlayAppState extends AbstractAppState implements
     }
     
     /*
+     * This method returns the total points.
+     */
+    public int getTotalPoints() {
+        return totalPoints;
+    }
+    
+    /*
+     * This method adds the points to the total points.
+     */
+    public void addPoints(int points) {
+        this.totalPoints += points;
+    }
+    
+    /*
      * This method sets up the font and text for the crosshair before adding it
      * to the guiNode.
      */
@@ -733,6 +748,7 @@ public class PlayAppState extends AbstractAppState implements
         
         // Reset everything else in case player starts over 
         currentRound = 1; //reset the current round back to beginning
+        totalPoints = 0;
         resetLevel();
         stateManager.getState(GuiAppState.class).setEnabled(true);
         stateManager.getState(GuiAppState.class).goToStart();

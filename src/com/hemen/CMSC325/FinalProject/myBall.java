@@ -17,6 +17,7 @@ public class myBall {
     private Sphere s;
     private Geometry g;
     private RigidBodyControl control;
+    public final int points = 100;
   
     public myBall(String name, int zSamples, int radialSamples, float radius,
             Material mat) {
