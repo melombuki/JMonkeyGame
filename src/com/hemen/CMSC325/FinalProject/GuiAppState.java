@@ -43,6 +43,7 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
     private float             hitMark = 0.0f;
     private float             startMark = 0.0f;
     private DropDown          totalRounds;
+    private int               totalPointsEnd = 0;
     
     public GuiAppState() {}
     
@@ -168,6 +169,12 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
             nifty.getCurrentScreen().findElementByName("totalPoints").getRenderer(
                     TextRenderer.class).setText("Total Score: " + totalPoints);
         }
+        
+        if(nifty.getCurrentScreen().getScreenId().equals("end")) {
+            // Set the end points
+            nifty.getCurrentScreen().findElementByName("totalPointsEnd").getRenderer(
+                    TextRenderer.class).setText("Total Score: " + totalPointsEnd);
+        }
     }
 
     public void onEndScreen() {
@@ -188,12 +195,25 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
         return String.format("%02.0f:%02.0f:%02.0f", hour, minute, second);
     }
     
+    /*
+     * This method returns the drop down control to maninulation.
+     */
     private DropDown findDropDownControl(final String id) {
  	return screen.findNiftyControl(id, DropDown.class);
     }
     
+    /*
+     * This method goes to the pause screen.
+     */
     public void goToPause() {
         nifty.gotoScreen("pause");
+    }
+    
+    /*
+     * This method goes to the end screen.
+     */
+    public void goToEnd() {
+        nifty.gotoScreen("end");
     }
     
     /*
@@ -207,15 +227,25 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
         stateManager.getState(PlayAppState.class).setEnabled(true);
     }
     
+    /*
+     * This method goes to the start screen.
+     */
     public void goToStart() {
         nifty.gotoScreen("start");
     }
     
+    /*
+     * This method goes to the HUD screen displayed during gameplay.
+     */
     public void goToHud() {
         nifty.gotoScreen("hud");
         flyCam.setDragToRotate(false);
     }
     
+    /*
+     * This method initializes the drop down menu to select the number of rounds
+     * to play before the game is over.
+     */
     public void initDropDown() {
         // Initialize the drop down elements that is persistent
         totalRounds = findDropDownControl("totalRounds");
@@ -260,6 +290,14 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
      * to continue. It allows the user to review their stats.
      */
     public void ackEnd() {
-        
+        stateManager.getState(PlayAppState.class).setEnabled(false);
+        goToStart();
+    }
+    
+    /*
+     * This method sets the total end points from a game just completed.
+     */
+    public void setTotalPointsEnd(int points) {
+        this.totalPointsEnd = points;
     }
 }

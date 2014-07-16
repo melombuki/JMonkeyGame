@@ -76,7 +76,7 @@ public class PlayAppState extends AbstractAppState implements
     
     // Appstate specific fields
     private static final int MAX_OBS = 3; //number of balls player must hit
-    private static final int MAX_SPAWN = 2; //# of respawns for enemies
+    private static final int MAX_SPAWN = 1; //# of respawns for enemies
     private Spatial sceneModel;
     private BulletAppState bulletAppState;
     private Node playerNode; //wraps player CharControl with a name
@@ -327,8 +327,16 @@ public class PlayAppState extends AbstractAppState implements
         
         if(enabled) {
             // Set up a color for the sky
-            viewPort.setBackgroundColor(new ColorRGBA(0.7f, 0.8f, 1f, 1f));
-            
+            //viewPort.setBackgroundColor(new ColorRGBA(0.7f, 0.8f, 1f, 1f));
+            if(!chaseCam.isEnabled()) {
+                // Seems to be a bug with JME3's chaseCam. Set enable method
+                // never changes the protected field canRotate back to true
+                // when it is re-enabled, but setDragToRotate(false) does. :)
+                // I submitted a ticket to the JME3's tracking system with solution.
+                // Issue #643
+                chaseCam.setEnabled(true);
+                chaseCam.setDragToRotate(false);
+            }
             // This block is where everything gets attached rootNode
             for(int i = 0; i < MAX_OBS; i++) {
                 rootNode.attachChild(goals[i].getGeo());
@@ -367,7 +375,7 @@ public class PlayAppState extends AbstractAppState implements
     public void initObjLocations(Vector3f[] pts) {       
          // Create the random locations for my world
         for(int i = 0; i < MAX_OBS; i++) {
-            //Position center around statue at approx (40, 10.0f, -17), not origin
+            //Position at the far end of the "tunnel"
             pts[i] = new Vector3f(50, 12, -456+(i*75));
         }
     }
@@ -566,6 +574,7 @@ public class PlayAppState extends AbstractAppState implements
         inputManager.deleteMapping("Down");
         inputManager.deleteMapping("Jump");
         inputManager.deleteMapping("shoot");
+        inputManager.deleteMapping("reset");
         inputManager.removeListener(this);
     }
 
@@ -742,16 +751,24 @@ public class PlayAppState extends AbstractAppState implements
      * been completed by the player.
      */
     public void gameOver() {
-        // Disable the physics and game play app states
+        // Disable the physics and game play app states and look at the ship
         bulletAppState.setEnabled(false);
-        setEnabled(false);
+        //chaseCam.setDragToRotate(true);
+        chaseCam.setEnabled(false);
+        cam.lookAt(player.getPhysicsLocation().setY(-1), Vector3f.UNIT_Y);
+        
+        // Save any parting information for the player to see
+        stateManager.getState(GuiAppState.class).setTotalPointsEnd(totalPoints);
         
         // Reset everything else in case player starts over
         currentRound = 1; //reset the current round back to beginning
         totalPoints = 0;
         resetLevel();
+        
+        // Change the app state and go to appropriate screen
         stateManager.getState(GuiAppState.class).setEnabled(true);
-        stateManager.getState(GuiAppState.class).goToStart();
+        stateManager.getState(GuiAppState.class).goToEnd();
+        
     }
     
     /*

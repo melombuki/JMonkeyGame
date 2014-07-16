@@ -74,7 +74,7 @@
         </layer>
     </screen>
     <!-- -->
-    <screen id="endGame" controller="com.hemen.CMSC325.FinalProject.GuiAppState">
+    <screen id="end" controller="com.hemen.CMSC325.FinalProject.GuiAppState">
         <layer id="background" childLayout="center">
             <image filename="Interface/HudBackground.png" height="100%" width="100%"></image>
         </layer>
