@@ -1,11 +1,14 @@
 //TODO: get rid of the walls for the new largeScene. No longer need them as
 // the mountains fence the char in anyway. 
 // 1. Add invisible plane triggers to case enemies to spawn at some location.
-// 2. Create more types of enemies and allow them to shoot at the player.
+// 2.1 Revamp the enemies by adding behaviours and look into just adding the
+//      stuff from the ai library that is already in the PATH :)
+// 2.2 Create more types of enemies and allow them to shoot at the player.
 // 3. Give yourself a health meter.
 
 package com.hemen.CMSC325.FinalProject;
 
+import com.jme3.ai.steering.behaviour.Persuit;
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.AbstractAppState;
@@ -75,11 +78,13 @@ public class PlayAppState extends AbstractAppState implements
     private static final int MAX_SPAWN = 1; //# of respawns for enemies
     private Spatial sceneModel;
     private BulletAppState bulletAppState;
-    private Node playerNode; //wraps player CharControl with a name
+    //private Node playerNode; //wraps player CharControl with a name
+    private Vehicle playerNode;
     private CharacterControl player;
     private Vector3f walkDirection = new Vector3f();
     private boolean left = false, right = false, up = false, down = false;
     private myBall[] goals;
+    private Vehicle[] goalsVehicles;
     private Material ball_hit, ball_A, ball_B, mat_bullet, mat_invis;
     private int totalRounds = 0; //1 round for each player * desired # of cycles
     private int totalPoints = 0;
@@ -110,9 +115,6 @@ public class PlayAppState extends AbstractAppState implements
     private BitmapText ch;
      
     public PlayAppState() {
-        //TODO: add options in GUI to choose how many cycles to play
-        
-        //totalRounds must = totalPlayers * cycles
         totalRounds = 2;  // one round per player 
     }
     
@@ -167,6 +169,7 @@ public class PlayAppState extends AbstractAppState implements
         // Init all arrays
         Vector3f[] objLocations = new Vector3f[MAX_OBS];
         goals = new myBall[MAX_OBS];
+        goalsVehicles = new Vehicle[MAX_OBS];
 
         // We load the 3 objectives for the player to hit.
         initObjLocations(objLocations);
@@ -177,7 +180,9 @@ public class PlayAppState extends AbstractAppState implements
         // The CharacterControl offers extra settings for
         // size, stepheight, jumping, falling, and gravity.
         // We also put the player in its starting position.
-        playerNode = new Node("player");
+        //playerNode = new Node("player");
+        playerNode = new Vehicle();
+        playerNode.setName("player");
         CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(1.5f, 3f, 1);
         player = new CharacterControl(capsuleShape, 0.05f);   
         player.setJumpSpeed(20);
@@ -389,6 +394,8 @@ public class PlayAppState extends AbstractAppState implements
             goals[i] = s;
             goals[i].getGeo().setLocalTranslation(objLocations[i]); //set random location
             goals[i].getGeo().addControl(s.getRigidBodyControl()); //add phy control to geo
+            goalsVehicles[i] = new Vehicle();
+            goalsVehicles[i].attachChild(goals[i].getGeo());
             bulletAppState.getPhysicsSpace().add(s.getRigidBodyControl()); //add it to phys space
         }
     }
@@ -786,4 +793,36 @@ public class PlayAppState extends AbstractAppState implements
         stateManager.getState(GuiAppState.class).setEnabled(true);
         stateManager.getState(GuiAppState.class).goToPause();
     }
+    
+        /**
+ *
+ * @author melombuki
+ */
+public class PersuitControl extends SimpleControl {
+    Vehicle target;
+    Persuit persuit = new Persuit();
+    
+    public PersuitControl(Vehicle target) {
+        this.target = target;
+    }
+    
+    @Override
+    protected void controlUpdate(float tpf) {
+        TestAI.Vehicle vehicle = (TestAI.Vehicle) getSpatial();
+        if (vehicle == null)
+            return;
+
+        // calculate the steering force from the Persuit routine
+        Vector3f steering = persuit.calculateForce(vehicle.getWorldTranslation(),
+                vehicle.velocity,
+                vehicle.speed, 
+                target.getSpeed(), 
+                tpf,
+                target.getVelocity(),
+                target.getFuturePosition(app.getTimer().getTimePerFrame()));
+
+        // add the force to the velicity
+        vehicle.updateVelocity(steering, tpf);
+    }
+}
 }
