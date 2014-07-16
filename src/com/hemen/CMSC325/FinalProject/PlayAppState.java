@@ -746,7 +746,7 @@ public class PlayAppState extends AbstractAppState implements
         bulletAppState.setEnabled(false);
         setEnabled(false);
         
-        // Reset everything else in case player starts over 
+        // Reset everything else in case player starts over
         currentRound = 1; //reset the current round back to beginning
         totalPoints = 0;
         resetLevel();

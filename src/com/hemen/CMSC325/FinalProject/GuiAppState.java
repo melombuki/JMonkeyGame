@@ -200,7 +200,7 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
      * This method starts the game app state and keeps a hud for the player
      * to see various stats.
      */
-    public void restartGame() {
+    public void continueGame() {
         goToHud();
         // Enable the gameplay state
         stateManager.getState(BulletAppState.class).setEnabled(true);
@@ -252,5 +252,14 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
         // Show it
         nifty.getCurrentScreen().findElementByName("totalPoints").getRenderer(
                 TextRenderer.class).setText("Total Score: " + totalPoints.toString());
+    }
+    
+    /*
+     * This method basically just keeps the hud at the end of the game, suspends
+     * all gameplay, and prompts the user to click a button when they are ready
+     * to continue. It allows the user to review their stats.
+     */
+    public void ackEnd() {
+        
     }
 }
