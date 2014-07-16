@@ -248,7 +248,7 @@ public class PlayAppState extends AbstractAppState implements
             }
         }
         
-        // Handles player movement
+        // Handle player movement (the user's character)
         camDir = cam.getDirection().multLocal(0.6f); // The use of multLocal here is to control the rate of movement multiplier for character walk speed.
         camLeft = cam.getLeft().multLocal(0.4f);
         walkDirection.set(0, 0, 0);

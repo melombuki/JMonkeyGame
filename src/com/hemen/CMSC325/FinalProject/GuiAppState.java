@@ -149,6 +149,8 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
     }
 
     public void onStartScreen() {
+        Integer totalPoints;
+        
         if(nifty.getCurrentScreen().getScreenId().equals("hud")) {
             // Set the current player in top corner
             nifty.getCurrentScreen().findElementByName(
@@ -159,9 +161,12 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
             nifty.getCurrentScreen().findElementByName(
                     "hitObject").getRenderer(TextRenderer.class).setText("");
             
-            // Clear the total points
-            nifty.getCurrentScreen().findElementByName(
-                    "totalPoints").getRenderer(TextRenderer.class).setText("Total Score: 0");
+            // Get the current total score
+            totalPoints = stateManager.getState(PlayAppState.class).getTotalPoints();
+            
+            // Set the total points
+            nifty.getCurrentScreen().findElementByName("totalPoints").getRenderer(
+                    TextRenderer.class).setText("Total Score: " + totalPoints);
         }
     }
 
@@ -234,7 +239,7 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
         // Reset the show time marker
         hitMark = timer.getTimeInSeconds();
         
-        // Show what the user hit
+        // Show the user what they hit
         nifty.getCurrentScreen().findElementByName("hitObject").getRenderer(
                 TextRenderer.class).setText("You hit a " + name + ". + " + points);
         
