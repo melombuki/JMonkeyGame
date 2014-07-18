@@ -24,7 +24,6 @@ import com.jme3.bullet.collision.PhysicsCollisionListener;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
 import com.jme3.bullet.collision.shapes.SphereCollisionShape;
 import com.jme3.bullet.control.CharacterControl;
-import com.jme3.bullet.control.GhostControl;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
@@ -141,7 +140,7 @@ public class PlayAppState extends AbstractAppState implements
         
         // Get the physics app state
         bulletAppState = stateManager.getState(BulletAppState.class);
-        bulletAppState.getPhysicsSpace().enableDebug(assetManager);
+        //bulletAppState.getPhysicsSpace().enableDebug(assetManager);
 
         // Set up the bullet object
         bullet = new Sphere(32, 32, 0.4f, true, false);
@@ -219,7 +218,8 @@ public class PlayAppState extends AbstractAppState implements
         chaseCam.setInvertVerticalAxis(true);
         
         // Move the player to the starting location
-        player.setPhysicsLocation(new Vector3f(-480, 8f, -480f));
+        //player.setPhysicsLocation(new Vector3f(-480, 8f, -480f));
+        player.setPhysicsLocation(new Vector3f(40, 8f, -480f));
 
         // We attach the scene and the player to the rootnode and the physics space,
         // to make them appear in the game world.
@@ -244,7 +244,6 @@ public class PlayAppState extends AbstractAppState implements
                 microDrones[i].unhit();
                 // Set appropriate color for ball
                 microDrones[i].getGeo().setMaterial(ball_A);
-                microDrones[i].getRigidBodyControl().clearForces();
             }
         }
         
@@ -389,7 +388,7 @@ public class PlayAppState extends AbstractAppState implements
         MicroDrone s;
                
         for(int i = 0; i < MAX_OBS; i++) {
-            s = new MicroDrone("S" + i, 100, ball_type);
+            s = new MicroDrone("S" + i, ball_type);
             microDrones[i] = s;
             microDrones[i].getGeo().setLocalTranslation(objLocations[i]); //set spawn location
             bulletAppState.getPhysicsSpace().add(s.getRigidBodyControl()); //add it to phys space
@@ -449,9 +448,17 @@ public class PlayAppState extends AbstractAppState implements
             }
         }
         l = megaDrone.getGhostControl().getOverlappingObjects();
+        
         // Check for infiltration of the mother ship's airspace
         if(megaDrone.getGhostControl().getOverlappingObjects().contains(playerNode.getControl(CharacterControl.class))) {
-            System.out.println("You are too close, run away!!!");
+            MicroDrone m = megaDrone.createMicroDrone(ball_A, player.getPhysicsLocation());
+            if(m != null) {
+                Vector3f v = playerNode.getWorldTranslation().
+                        subtract(megaDrone.getGeo().getWorldTranslation()).normalize();
+                m.getRigidBodyControl().setPhysicsLocation(megaDrone.getGeo().getWorldTranslation().add(v.mult(10f)).setY(12));
+                rootNode.attachChild(m.getGeo());
+                bulletAppState.getPhysicsSpace().add(m.getRigidBodyControl()); 
+            }
         }
         
         // Remove the bullet physics control from the world
@@ -614,7 +621,8 @@ public class PlayAppState extends AbstractAppState implements
      */
     public void resetPlayer() {
         // Reset the player back to origin and stop all movements
-        player.setPhysicsLocation(new Vector3f(-480, 8f, -480f)); //largeScene
+        //player.setPhysicsLocation(new Vector3f(-480, 8f, -480f)); //largeScene
+        player.setPhysicsLocation(new Vector3f(40, 8f, -480f)); //largeScene
     }
     
     /*
