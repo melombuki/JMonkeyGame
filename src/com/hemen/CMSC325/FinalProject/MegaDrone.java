@@ -20,15 +20,16 @@ public class MegaDrone extends Enemy {
     private Geometry g;
     private RigidBodyControl control;
     private GhostControl gControl;
+    private final float radius = 5;
   
     public MegaDrone(String name, int points, Material mat) {
-        s = new Sphere(32, 32, 5);
+        s = new Sphere(32, 32, radius);
         g = new Geometry(name, s);
         g.setMaterial(mat);
         this.setPoints(points);
         
         // Greater radius than geo radius makes for much hit better detection
-        control = new RigidBodyControl(new SphereCollisionShape(5.1f), 1f);
+        control = new RigidBodyControl(new SphereCollisionShape(radius + 0.1f), 1f);
         control.setLinearDamping(0.7f);
         
         // Set up the ghost control as a proximity detector

@@ -141,7 +141,6 @@ public class PlayAppState extends AbstractAppState implements
         
         // Get the physics app state
         bulletAppState = stateManager.getState(BulletAppState.class);
-        bulletAppState.getPhysicsSpace().setGravity(new Vector3f(0, -20f, 0));
         bulletAppState.getPhysicsSpace().enableDebug(assetManager);
 
         // Set up the bullet object
