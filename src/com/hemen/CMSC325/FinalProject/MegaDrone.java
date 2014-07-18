@@ -41,4 +41,6 @@ public class MegaDrone extends Enemy {
     public Geometry getGeo() {return g;}
     
     public RigidBodyControl getRigidBodyControl() {return control;}
+    
+    public GhostControl getGhostControl() {return gControl;}
 }

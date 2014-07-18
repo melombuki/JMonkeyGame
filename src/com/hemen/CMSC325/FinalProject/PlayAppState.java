@@ -24,6 +24,7 @@ import com.jme3.bullet.collision.PhysicsCollisionListener;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
 import com.jme3.bullet.collision.shapes.SphereCollisionShape;
 import com.jme3.bullet.control.CharacterControl;
+import com.jme3.bullet.control.GhostControl;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
@@ -50,6 +51,7 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Sphere;
+import java.util.List;
 
 /**
  * This class contains all of the necessary objects and variables for the actual
@@ -83,6 +85,7 @@ public class PlayAppState extends AbstractAppState implements
     private Vector3f walkDirection = new Vector3f();
     private boolean left = false, right = false, up = false, down = false;
     private MicroDrone[] microDrones;
+    private MegaDrone megaDrone;
     private Material ball_hit, ball_A, ball_B, mat_bullet, mat_invis;
     private int totalRounds = 0; //1 round for each player * desired # of cycles
     private int totalPoints = 0;
@@ -94,6 +97,7 @@ public class PlayAppState extends AbstractAppState implements
     private Quaternion yaw90 = new Quaternion().fromAngleAxis(
                 FastMath.HALF_PI, Vector3f.UNIT_Y);
     private boolean isStart = true; //fixes bug where ball is sometimes hit at start of turn
+    private List l;
     
     // Temporary vectors used on each frame.
     // They here to avoid instanciating new vectors on each frame
@@ -113,9 +117,6 @@ public class PlayAppState extends AbstractAppState implements
     private BitmapText ch;
      
     public PlayAppState() {
-        //TODO: add options in GUI to choose how many cycles to play
-        
-        //totalRounds must = totalPlayers * cycles
         totalRounds = 2;  // one round per player 
     }
     
@@ -141,7 +142,7 @@ public class PlayAppState extends AbstractAppState implements
         // Get the physics app state
         bulletAppState = stateManager.getState(BulletAppState.class);
         bulletAppState.getPhysicsSpace().setGravity(new Vector3f(0, -20f, 0));
-        //bulletAppState.getPhysicsSpace().enableDebug(assetManager);
+        bulletAppState.getPhysicsSpace().enableDebug(assetManager);
 
         // Set up the bullet object
         bullet = new Sphere(32, 32, 0.4f, true, false);
@@ -170,6 +171,7 @@ public class PlayAppState extends AbstractAppState implements
         // Init all arrays
         Vector3f[] objLocations = new Vector3f[MAX_OBS];
         microDrones = new MicroDrone[MAX_OBS];
+        megaDrone = new MegaDrone("megaDrone", 500, ball_B);
 
         // We load the 3 objectives for the player to hit.
         initObjLocations(objLocations);
@@ -203,7 +205,6 @@ public class PlayAppState extends AbstractAppState implements
                 new TextureKey("Models/FighterBomber.png", false)));
         hoverJet.setMaterial(mat_hj);
         hoverJet.setName("hoverJet");
-        //hoverJet.setLocalScale(3f);
         hoverJetQ = Quaternion.IDENTITY;
         playerNode.attachChild(hoverJet);
 
@@ -348,6 +349,7 @@ public class PlayAppState extends AbstractAppState implements
             rootNode.attachChild(boomSound);
             rootNode.attachChild(shockwave.getShockWave());
             rootNode.attachChild(playerNode);
+            rootNode.attachChild(megaDrone.getGeo());
             
             // Establish player controls
             initControls();
@@ -373,7 +375,7 @@ public class PlayAppState extends AbstractAppState implements
      * first round of balls.
      */ 
     public void initObjLocations(Vector3f[] pts) {       
-         // Create the random locations for my world
+         // Create the spawn locations for the microDrones
         for(int i = 0; i < MAX_OBS; i++) {
             //Position at the far end of the "tunnel"
             pts[i] = new Vector3f(50, 12, -456+(i*75));
@@ -386,14 +388,18 @@ public class PlayAppState extends AbstractAppState implements
      */
     public void setUpObjectives(Vector3f[] objLocations, Material ball_type) {
         MicroDrone s;
-        String name;
                
         for(int i = 0; i < MAX_OBS; i++) {
             s = new MicroDrone("S" + i, 100, ball_type);
             microDrones[i] = s;
-            microDrones[i].getGeo().setLocalTranslation(objLocations[i]); //set random location
+            microDrones[i].getGeo().setLocalTranslation(objLocations[i]); //set spawn location
             bulletAppState.getPhysicsSpace().add(s.getRigidBodyControl()); //add it to phys space
         }
+        
+        // Set up the big drone mother ship
+        bulletAppState.getPhysicsSpace().add(megaDrone.getRigidBodyControl());
+        bulletAppState.getPhysicsSpace().add(megaDrone.getGhostControl());
+        megaDrone.getRigidBodyControl().setPhysicsLocation(new Vector3f(40, 12, -388));
     }
 
     /*
@@ -401,47 +407,52 @@ public class PlayAppState extends AbstractAppState implements
      * green if it has not been hit yet.
      */
     public void collision(PhysicsCollisionEvent e) {
-        // Check for collision with any ball in objective list
-        Enemy tempBall;
+        // Check for collision with any microDrone and a bullet
+        Enemy enemy;
         String NodeA = e.getNodeA().getName();
         String NodeB = e.getNodeB().getName();
   
-        if((tempBall = getDrone(NodeA, microDrones)) != null) { //check NodeA
+        if((enemy = getDrone(NodeA, microDrones)) != null) { //check NodeA
             if(NodeB.equals("bullet")) {
-                if(!tempBall.isHit()) {
-                    final Geometry geo = ((MicroDrone)tempBall).getGeo();
+                if(!enemy.isHit()) {
+                    final Geometry geo = ((MicroDrone)enemy).getGeo();
                     geo.setMaterial(ball_hit); //set material to hit
                     rootNode.detachChild(geo);
                     bulletAppState.getPhysicsSpace().remove(geo);
-                    tempBall.hit(); //update ball as hit
+                    enemy.hit(); //update ball as hit
                     shockwave.explode(geo.getLocalTranslation()); //add special effect
                     boomSound.setLocalTranslation(geo.getLocalTranslation());
 //                    boomSound.playInstance(); //comment out to mute
-                    stateManager.getState(GuiAppState.class).showHitObject("ball", tempBall.getPoints());
+                    stateManager.getState(GuiAppState.class).showHitObject("ball", enemy.getPoints());
                 }
             isStart = false; //there was a collision = no longer start of turn
             } else if(NodeB.equals("player")) {
                  //TODO: make the player move
 
             }
-        } else if((tempBall = getDrone(NodeB, microDrones)) != null ) {  //check NodeB
+        } else if((enemy = getDrone(NodeB, microDrones)) != null ) {  //check NodeB
             if(NodeA.equals("bullet")) {
-                if(!tempBall.isHit()) {
-                    final Geometry geo = ((MicroDrone)tempBall).getGeo();
+                if(!enemy.isHit()) {
+                    final Geometry geo = ((MicroDrone)enemy).getGeo();
                     geo.setMaterial(ball_hit); //set material to hit
                     rootNode.detachChild(geo);
                     bulletAppState.getPhysicsSpace().remove(geo);
-                    tempBall.hit(); //update ball as hit
+                    enemy.hit(); //update ball as hit
                     shockwave.explode(geo.getLocalTranslation()); //add special effect
                     boomSound.setLocalTranslation(geo.getLocalTranslation());
 //                    boomSound.playInstance();
-                    stateManager.getState(GuiAppState.class).showHitObject("ball", tempBall.getPoints());
+                    stateManager.getState(GuiAppState.class).showHitObject("ball", enemy.getPoints());
                 }
                 isStart = false; //there was a collision = no longer start of turn
             } else if (NodeA.equals("player")) {
                  //TODO: make the player move
 
             }
+        }
+        l = megaDrone.getGhostControl().getOverlappingObjects();
+        // Check for infiltration of the mother ship's airspace
+        if(megaDrone.getGhostControl().getOverlappingObjects().contains(playerNode.getControl(CharacterControl.class))) {
+            System.out.println("You are too close, run away!!!");
         }
         
         // Remove the bullet physics control from the world
