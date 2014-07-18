@@ -12,29 +12,22 @@ import com.jme3.scene.shape.Sphere;
  * 
  * @author Joshua P. Hemen
  */
-public class myBall {
-    private boolean isHit = false;
+public class MicroDrone extends Enemy {
     private Sphere s;
     private Geometry g;
     private RigidBodyControl control;
-    public final int points = 100;
   
-    public myBall(String name, int zSamples, int radialSamples, float radius,
-            Material mat) {
-        s = new Sphere(zSamples, radialSamples, radius);
+    public MicroDrone(String name, int points, Material mat) {
+        s = new Sphere(32, 32, 2);
         g = new Geometry(name, s);
         g.setMaterial(mat);
+        this.setPoints(points);
         
         // Greater radius than geo radius makes for much hit better detection
         control = new RigidBodyControl(new SphereCollisionShape(2.1f), 1f);
-        control.setLinearDamping(0.6f);
+        control.setLinearDamping(0.8f);
+        g.addControl(control);
     }
-    
-    public boolean isHit() {return isHit;}
-    
-    public void hitBall() {isHit = true;}
-    
-    public void unhitBall() {isHit = false;}
     
     public Geometry getGeo() {return g;}
     

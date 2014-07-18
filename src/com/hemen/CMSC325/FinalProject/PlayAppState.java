@@ -82,7 +82,7 @@ public class PlayAppState extends AbstractAppState implements
     private CharacterControl player;
     private Vector3f walkDirection = new Vector3f();
     private boolean left = false, right = false, up = false, down = false;
-    private myBall[] goals;
+    private MicroDrone[] microDrones;
     private Material ball_hit, ball_A, ball_B, mat_bullet, mat_invis;
     private int totalRounds = 0; //1 round for each player * desired # of cycles
     private int totalPoints = 0;
@@ -169,7 +169,7 @@ public class PlayAppState extends AbstractAppState implements
 
         // Init all arrays
         Vector3f[] objLocations = new Vector3f[MAX_OBS];
-        goals = new myBall[MAX_OBS];
+        microDrones = new MicroDrone[MAX_OBS];
 
         // We load the 3 objectives for the player to hit.
         initObjLocations(objLocations);
@@ -241,10 +241,10 @@ public class PlayAppState extends AbstractAppState implements
         // Fixes bug where ball may show as hit at beginning of players turn
         if(isStart) {
             for(int i = 0; i < MAX_OBS; i++) {
-                goals[i].unhitBall();
+                microDrones[i].unhit();
                 // Set appropriate color for ball
-                goals[i].getGeo().setMaterial(ball_A);
-                goals[i].getRigidBodyControl().clearForces();
+                microDrones[i].getGeo().setMaterial(ball_A);
+                microDrones[i].getRigidBodyControl().clearForces();
             }
         }
         
@@ -283,7 +283,7 @@ public class PlayAppState extends AbstractAppState implements
         
         // Find out if there are balls left to hit
         boolean isRemaining = false; //assume all targets are hit
-        for(myBall b : goals) {
+        for(MicroDrone b : microDrones) {
             // Game continues if there are balls yet to hit
             if(!b.isHit()) {
                 isRemaining = true;
@@ -305,7 +305,7 @@ public class PlayAppState extends AbstractAppState implements
         }
         
         // Make the balls move towards the player.
-        updateBallPositions();
+        updateEnemyPositions();
     }
     
     @Override
@@ -339,7 +339,7 @@ public class PlayAppState extends AbstractAppState implements
             }
             // This block is where everything gets attached rootNode
             for(int i = 0; i < MAX_OBS; i++) {
-                rootNode.attachChild(goals[i].getGeo());
+                rootNode.attachChild(microDrones[i].getGeo());
             }
             rootNode.attachChild(sceneModel);
             rootNode.addLight(al);
@@ -381,18 +381,17 @@ public class PlayAppState extends AbstractAppState implements
     }
 
     /*
-     * This method fills an array of type myBall with new ball objects and
+     * This method fills an array of type MicroDrone with new ball objects and
      * attaches their physical controls.
      */
     public void setUpObjectives(Vector3f[] objLocations, Material ball_type) {
-        myBall s;
+        MicroDrone s;
         String name;
                
         for(int i = 0; i < MAX_OBS; i++) {
-            s = new myBall("S" + i, 10, 10, 2f, ball_type);
-            goals[i] = s;
-            goals[i].getGeo().setLocalTranslation(objLocations[i]); //set random location
-            goals[i].getGeo().addControl(s.getRigidBodyControl()); //add phy control to geo
+            s = new MicroDrone("S" + i, 100, ball_type);
+            microDrones[i] = s;
+            microDrones[i].getGeo().setLocalTranslation(objLocations[i]); //set random location
             bulletAppState.getPhysicsSpace().add(s.getRigidBodyControl()); //add it to phys space
         }
     }
@@ -403,51 +402,45 @@ public class PlayAppState extends AbstractAppState implements
      */
     public void collision(PhysicsCollisionEvent e) {
         // Check for collision with any ball in objective list
-        myBall tempBall;
+        Enemy tempBall;
         String NodeA = e.getNodeA().getName();
         String NodeB = e.getNodeB().getName();
   
-        if((tempBall = getBall(NodeA, goals)) != null) { //check NodeA
+        if((tempBall = getDrone(NodeA, microDrones)) != null) { //check NodeA
             if(NodeB.equals("bullet")) {
                 if(!tempBall.isHit()) {
-                    final Geometry geo = tempBall.getGeo();
+                    final Geometry geo = ((MicroDrone)tempBall).getGeo();
                     geo.setMaterial(ball_hit); //set material to hit
                     rootNode.detachChild(geo);
                     bulletAppState.getPhysicsSpace().remove(geo);
-                    tempBall.hitBall(); //update ball as hit
+                    tempBall.hit(); //update ball as hit
                     shockwave.explode(geo.getLocalTranslation()); //add special effect
                     boomSound.setLocalTranslation(geo.getLocalTranslation());
 //                    boomSound.playInstance(); //comment out to mute
-                    stateManager.getState(GuiAppState.class).showHitObject("ball", tempBall.points);
+                    stateManager.getState(GuiAppState.class).showHitObject("ball", tempBall.getPoints());
                 }
             isStart = false; //there was a collision = no longer start of turn
             } else if(NodeB.equals("player")) {
                  //TODO: make the player move
-                 float impluse = e.getAppliedImpulse();
-                 Vector3f v = e.getNormalWorldOnB();
-                 player.setWalkDirection(v.mult(impluse*100));
-                 player.update(app.getTimer().getTimePerFrame());
+
             }
-        } else if((tempBall = getBall(NodeB, goals)) != null ) {  //check NodeB
+        } else if((tempBall = getDrone(NodeB, microDrones)) != null ) {  //check NodeB
             if(NodeA.equals("bullet")) {
                 if(!tempBall.isHit()) {
-                    final Geometry geo = tempBall.getGeo();
+                    final Geometry geo = ((MicroDrone)tempBall).getGeo();
                     geo.setMaterial(ball_hit); //set material to hit
                     rootNode.detachChild(geo);
                     bulletAppState.getPhysicsSpace().remove(geo);
-                    tempBall.hitBall(); //update ball as hit
+                    tempBall.hit(); //update ball as hit
                     shockwave.explode(geo.getLocalTranslation()); //add special effect
                     boomSound.setLocalTranslation(geo.getLocalTranslation());
 //                    boomSound.playInstance();
-                    stateManager.getState(GuiAppState.class).showHitObject("ball", tempBall.points);
+                    stateManager.getState(GuiAppState.class).showHitObject("ball", tempBall.getPoints());
                 }
                 isStart = false; //there was a collision = no longer start of turn
             } else if (NodeA.equals("player")) {
                  //TODO: make the player move
-                 float impluse = e.getAppliedImpulse();
-                 Vector3f v = e.getNormalWorldOnB();
-                 player.setWalkDirection(v.mult(impluse*100));
-                 player.update(app.getTimer().getTimePerFrame());
+
             }
         }
         
@@ -510,12 +503,12 @@ public class PlayAppState extends AbstractAppState implements
     }
     
     /*
-     * This method returns myBall object if it is found by name in an array
-     * of type myBall, or null if it is not found. Calling method must check
+     * This method returns MicroDrone object if it is found by name in an array
+     * of type MicroDrone, or null if it is not found. Calling method must check
      * for null return.
      */
-    private myBall getBall(String a, myBall[] balls) {
-        for(myBall b : balls) {
+    private MicroDrone getDrone(String a, MicroDrone[] balls) {
+        for(MicroDrone b : balls) {
             //If the ball's name is found, make it hit and report found
             if(a.equals(b.getGeo().getName())) {
                 return b; //name found
@@ -621,7 +614,7 @@ public class PlayAppState extends AbstractAppState implements
         // Detach all balls and remove phyisics control
         for(int i = 0; i < MAX_OBS; i++) {
             rootNode.detachChildNamed("S" + i);
-            bulletAppState.getPhysicsSpace().remove(goals[i].getGeo());
+            bulletAppState.getPhysicsSpace().remove(microDrones[i].getGeo());
         }
 
         // Update actual ball/ball physics locations with new locations and reattach
@@ -630,20 +623,20 @@ public class PlayAppState extends AbstractAppState implements
         
         Geometry g; //temp variable for ball's geometry
         for(int i = 0; i < MAX_OBS; i++) {
-            g = goals[i].getGeo(); //get handle for a ball
+            g = microDrones[i].getGeo(); //get handle for a ball
             
             //reset ball to not be hit
-            goals[i].unhitBall();
+            microDrones[i].unhit();
             
             //set new random location of ball geometry and physics control
             g.setLocalTranslation(objLocations[i]);
-            goals[i].getRigidBodyControl().setPhysicsLocation(objLocations[i]);
+            microDrones[i].getRigidBodyControl().setPhysicsLocation(objLocations[i]);
                         
             //set appropriate color for ball
             g.setMaterial(ball_A); //color player 1
                        
             //reattach the ball physics control
-            bulletAppState.getPhysicsSpace().add(goals[i].getRigidBodyControl());
+            bulletAppState.getPhysicsSpace().add(microDrones[i].getRigidBodyControl());
             
             //reattach ball to scene graph
             rootNode.attachChild(g); 
@@ -751,13 +744,13 @@ public class PlayAppState extends AbstractAppState implements
     /*
      * This method makes the floating balls move around straight to the player.
      */
-    public void updateBallPositions() {
+    public void updateEnemyPositions() {
         for(int i = 0; i < MAX_OBS; i++) {
             // Make the balls move directly towards the player's location
             Vector3f v = player.getPhysicsLocation();
-            v = v.subtract(goals[i].getRigidBodyControl().getPhysicsLocation()).normalizeLocal();
+            v = v.subtract(microDrones[i].getRigidBodyControl().getPhysicsLocation()).normalizeLocal();
             //v.setY(1);
-            goals[i].getRigidBodyControl().applyImpulse(v, Vector3f.ZERO);
+            microDrones[i].getRigidBodyControl().applyImpulse(v.mult(0.3f), Vector3f.ZERO);
         }
     }
     
