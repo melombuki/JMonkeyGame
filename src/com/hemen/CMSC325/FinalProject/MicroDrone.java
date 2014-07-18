@@ -26,7 +26,6 @@ public class MicroDrone extends Enemy {
         
         // Greater radius than geo radius makes for much hit better detection
         control = new RigidBodyControl(new SphereCollisionShape(radius + 0.1f), 1f);
-        control.setRestitution(2f);
         control.setLinearDamping(0.8f);
         g.addControl(control);
     }
