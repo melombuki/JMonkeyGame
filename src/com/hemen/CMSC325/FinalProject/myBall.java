@@ -27,7 +27,7 @@ public class myBall {
         
         // Greater radius than geo radius makes for much hit better detection
         control = new RigidBodyControl(new SphereCollisionShape(2.1f), 1f);
-        //control.setKinematic(true);
+        control.setLinearDamping(0.6f);
     }
     
     public boolean isHit() {return isHit;}

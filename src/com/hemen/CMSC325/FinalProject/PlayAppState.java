@@ -3,6 +3,9 @@
 // 1. Add invisible plane triggers to case enemies to spawn at some location.
 // 2. Create more types of enemies and allow them to shoot at the player.
 // 3. Give yourself a health meter.
+// 4. Create a new player type with the same motion controls as the current balls
+//     but make it move slower, increase the linear dampening, and on applyImpulse
+//     setY to 1 every time. This will keep it in the air. It will release the current balls when they get close.
 
 package com.hemen.CMSC325.FinalProject;
 
@@ -212,7 +215,7 @@ public class PlayAppState extends AbstractAppState implements
         chaseCam.setZoomSensitivity(0);
         chaseCam.setDragToRotate(false);
         chaseCam.setMinVerticalRotation(-(FastMath.HALF_PI+ 0.7f));
-        chaseCam.setMaxVerticalRotation(FastMath.QUARTER_PI);
+        chaseCam.setMaxVerticalRotation(FastMath.HALF_PI*0.8f);
         chaseCam.setInvertVerticalAxis(true);
         
         // Move the player to the starting location
@@ -241,6 +244,7 @@ public class PlayAppState extends AbstractAppState implements
                 goals[i].unhitBall();
                 // Set appropriate color for ball
                 goals[i].getGeo().setMaterial(ball_A);
+                goals[i].getRigidBodyControl().clearForces();
             }
         }
         
@@ -403,32 +407,48 @@ public class PlayAppState extends AbstractAppState implements
         String NodeA = e.getNodeA().getName();
         String NodeB = e.getNodeB().getName();
   
-        if((tempBall = getBall(NodeA, goals)) != null && NodeB.equals("bullet")) { //check NodeA
-            if(!tempBall.isHit()) {
-                final Geometry geo = tempBall.getGeo();
-                geo.setMaterial(ball_hit); //set material to hit
-                rootNode.detachChild(geo);
-                bulletAppState.getPhysicsSpace().remove(geo);
-                tempBall.hitBall(); //update ball as hit
-                shockwave.explode(geo.getLocalTranslation()); //add special effect
-                boomSound.setLocalTranslation(geo.getLocalTranslation());
-//                boomSound.playInstance(); //comment out to mute
-                stateManager.getState(GuiAppState.class).showHitObject("ball", tempBall.points);
-            }
+        if((tempBall = getBall(NodeA, goals)) != null) { //check NodeA
+            if(NodeB.equals("bullet")) {
+                if(!tempBall.isHit()) {
+                    final Geometry geo = tempBall.getGeo();
+                    geo.setMaterial(ball_hit); //set material to hit
+                    rootNode.detachChild(geo);
+                    bulletAppState.getPhysicsSpace().remove(geo);
+                    tempBall.hitBall(); //update ball as hit
+                    shockwave.explode(geo.getLocalTranslation()); //add special effect
+                    boomSound.setLocalTranslation(geo.getLocalTranslation());
+//                    boomSound.playInstance(); //comment out to mute
+                    stateManager.getState(GuiAppState.class).showHitObject("ball", tempBall.points);
+                }
             isStart = false; //there was a collision = no longer start of turn
-        } else if((tempBall = getBall(NodeB, goals)) != null && NodeA.equals("bullet")) {  //check NodeB
-            if(!tempBall.isHit()) {
-                final Geometry geo = tempBall.getGeo();
-                geo.setMaterial(ball_hit); //set material to hit
-                rootNode.detachChild(geo);
-                bulletAppState.getPhysicsSpace().remove(geo);
-                tempBall.hitBall(); //update ball as hit
-                shockwave.explode(geo.getLocalTranslation()); //add special effect
-                boomSound.setLocalTranslation(geo.getLocalTranslation());
-//                boomSound.playInstance();
-                stateManager.getState(GuiAppState.class).showHitObject("ball", tempBall.points);
+            } else if(NodeB.equals("player")) {
+                 //TODO: make the player move
+                 float impluse = e.getAppliedImpulse();
+                 Vector3f v = e.getNormalWorldOnB();
+                 player.setWalkDirection(v.mult(impluse*100));
+                 player.update(app.getTimer().getTimePerFrame());
             }
-            isStart = false; //there was a collision = no longer start of turn
+        } else if((tempBall = getBall(NodeB, goals)) != null ) {  //check NodeB
+            if(NodeA.equals("bullet")) {
+                if(!tempBall.isHit()) {
+                    final Geometry geo = tempBall.getGeo();
+                    geo.setMaterial(ball_hit); //set material to hit
+                    rootNode.detachChild(geo);
+                    bulletAppState.getPhysicsSpace().remove(geo);
+                    tempBall.hitBall(); //update ball as hit
+                    shockwave.explode(geo.getLocalTranslation()); //add special effect
+                    boomSound.setLocalTranslation(geo.getLocalTranslation());
+//                    boomSound.playInstance();
+                    stateManager.getState(GuiAppState.class).showHitObject("ball", tempBall.points);
+                }
+                isStart = false; //there was a collision = no longer start of turn
+            } else if (NodeA.equals("player")) {
+                 //TODO: make the player move
+                 float impluse = e.getAppliedImpulse();
+                 Vector3f v = e.getNormalWorldOnB();
+                 player.setWalkDirection(v.mult(impluse*100));
+                 player.update(app.getTimer().getTimePerFrame());
+            }
         }
         
         // Remove the bullet physics control from the world
@@ -735,10 +755,9 @@ public class PlayAppState extends AbstractAppState implements
         for(int i = 0; i < MAX_OBS; i++) {
             // Make the balls move directly towards the player's location
             Vector3f v = player.getPhysicsLocation();
-            v = v.subtract(goals[i].getRigidBodyControl().getPhysicsLocation()).mult(0.7f);
-            //v.setY(0); //make them float in the air for ever
-            goals[i].getRigidBodyControl().setLinearVelocity(v.mult(new Vector3f(0.25f, 1, 0.25f)));
-            goals[i].getRigidBodyControl().setLinearVelocity(v);
+            v = v.subtract(goals[i].getRigidBodyControl().getPhysicsLocation()).normalizeLocal();
+            //v.setY(1);
+            goals[i].getRigidBodyControl().applyImpulse(v, Vector3f.ZERO);
         }
     }
     
