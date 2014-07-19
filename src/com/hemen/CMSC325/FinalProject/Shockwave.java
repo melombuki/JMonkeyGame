@@ -69,9 +69,4 @@ public class Shockwave {
     public ParticleEmitter getShockWave() {
         return shockWave;
     }
-    
-    //This method was added by Joshua P. Hemen
-    public void setFaceNormal(Vector3f v) {
-        shockWave.setFaceNormal(Vector3f.UNIT_Z);
-    }
 }

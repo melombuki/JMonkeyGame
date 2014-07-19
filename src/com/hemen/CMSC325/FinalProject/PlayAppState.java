@@ -134,9 +134,9 @@ public class PlayAppState extends AbstractAppState implements
         //bulletAppState.getPhysicsSpace().enableDebug(assetManager);
 
         // Set up the bullet object
-        bullet = new Sphere(32, 32, 0.4f, true, false);
+        bullet = new Sphere(32, 32, 0.2f, true, false);
         bullet.setTextureMode(Sphere.TextureMode.Projected);
-        bulletCollisionShape = new SphereCollisionShape(0.1f);
+        bulletCollisionShape = new SphereCollisionShape(0.2f);
         
         // Set up the lights for the scene
         setUpLight();
@@ -317,7 +317,6 @@ public class PlayAppState extends AbstractAppState implements
             rootNode.addLight(dl);
             rootNode.attachChild(shotSound);
             rootNode.attachChild(boomSound);
-            rootNode.attachChild(shockwave.getShockWave());
             rootNode.attachChild(playerNode);
             rootNode.attachChild(megaDrone.getGeo());
             
@@ -425,10 +424,10 @@ public class PlayAppState extends AbstractAppState implements
         // Remove the bullet physics control from the world
         if(NodeA.getName().equals("bullet")) {
             bulletAppState.getPhysicsSpace().remove(e.getNodeA());
-            e.getNodeA().removeFromParent();
+            NodeA.removeFromParent();
         } else if(NodeB.getName().equals("bullet")) {
             bulletAppState.getPhysicsSpace().remove(e.getNodeB());
-            e.getNodeB().removeFromParent();
+            NodeB.removeFromParent();       
         }
     }
     
