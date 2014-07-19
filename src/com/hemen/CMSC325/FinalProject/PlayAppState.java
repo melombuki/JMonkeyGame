@@ -48,7 +48,6 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Sphere;
-import java.util.List;
 import java.util.Set;
 
 /**
