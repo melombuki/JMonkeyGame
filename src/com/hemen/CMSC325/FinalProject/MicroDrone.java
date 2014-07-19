@@ -17,12 +17,13 @@ public class MicroDrone extends Enemy {
     private Geometry g;
     private RigidBodyControl control;
     private final float radius = 2;
+    public final static int points = 100;
   
     public MicroDrone(String name, Material mat) {
         s = new Sphere(32, 32, radius);
         g = new Geometry(name, s);
         g.setMaterial(mat);
-        setPoints(100);
+        g.setName("microDrone");
         
         // Greater radius than geo radius makes for much hit better detection
         control = new RigidBodyControl(new SphereCollisionShape(radius + 0.1f), 1f);

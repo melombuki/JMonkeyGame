@@ -10,6 +10,7 @@ import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.material.Material;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
+import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Sphere;
 import java.util.HashSet;
 import java.util.Set;
@@ -27,16 +28,15 @@ public class MegaDrone extends Enemy {
     private final float radius = 10;
     private long lastSpawnTime = 0;
     private int hitPoints = 100;
+    public static final int points = 500;
     
-    Set<MicroDrone> minions;
+    private Set<MicroDrone> minions;
   
     
     public MegaDrone(String name, int points, Material mat) {
         s = new Sphere(32, 32, radius);
         g = new Geometry(name, s);
-        g.setMaterial(mat);
-        setPoints(500);
-        
+        g.setMaterial(mat);     
         
         // Set up the minion queue
         minions = new HashSet<MicroDrone>();
@@ -59,12 +59,11 @@ public class MegaDrone extends Enemy {
     public GhostControl getGhostControl() {return gControl;}
     
     public MicroDrone createMicroDrone(Material mat, Vector3f playerLocation) {
-        System.out.println(System.currentTimeMillis() - lastSpawnTime);
         if(System.currentTimeMillis() - lastSpawnTime > 1000 &&
-                minions.size() <= MAX_MINIONS) {
+                getMinions().size() <= MAX_MINIONS) {
             lastSpawnTime = System.currentTimeMillis();
             MicroDrone m = new MicroDrone("microDrone", mat);
-            minions.add(m);
+            getMinions().add(m);
             return m;
         }
         return null; // no minion was added to the scene
@@ -76,5 +75,23 @@ public class MegaDrone extends Enemy {
     public void hit() {
         super.hit();
         hitPoints -= 10;
+    }
+
+    /**
+     * @return the minions
+     */
+    public Set<MicroDrone> getMinions() {
+        return minions;
+    }
+    
+    public boolean removeMinion(Spatial m) {
+        for(MicroDrone md : minions) {
+            if(md.getGeo().hashCode() == m.hashCode()) {
+                if(minions.remove(md)) {
+                    return false;
+                }
+            }
+        }
+        return false;
     }
 }
