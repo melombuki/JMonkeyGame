@@ -10,6 +10,7 @@ import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.material.Material;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
+import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Sphere;
 import java.util.HashSet;
@@ -23,7 +24,7 @@ public class MegaDrone extends Enemy {
     private final int MAX_MINIONS = 3;
     private Sphere s;
     private Geometry g;
-    private RigidBodyControl control;
+    private DroneControl control;
     private GhostControl gControl;
     private final float radius = 10;
     private long lastSpawnTime = 0;
@@ -33,16 +34,16 @@ public class MegaDrone extends Enemy {
     private Set<MicroDrone> minions;
   
     
-    public MegaDrone(String name, int points, Material mat) {
+    public MegaDrone(String name, Material mat, Node target) {
         s = new Sphere(32, 32, radius);
         g = new Geometry(name, s);
-        g.setMaterial(mat);     
+        g.setMaterial(mat);
         
         // Set up the minion queue
         minions = new HashSet<MicroDrone>();
         
         // Greater radius than geo radius makes for much hit better detection
-        control = new RigidBodyControl(new SphereCollisionShape(radius + 0.1f), 1f);
+        control = new DroneControl(new SphereCollisionShape(radius + 0.1f), 3f, target);
         control.setLinearDamping(0.7f);
         
         // Set up the ghost control as a proximity detector
