@@ -19,6 +19,7 @@ import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.PhysicsSpace;
 import com.jme3.bullet.collision.PhysicsCollisionEvent;
 import com.jme3.bullet.collision.PhysicsCollisionListener;
+import com.jme3.bullet.collision.PhysicsCollisionObject;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
 import com.jme3.bullet.collision.shapes.SphereCollisionShape;
 import com.jme3.bullet.control.CharacterControl;
@@ -170,7 +171,8 @@ public class PlayAppState extends AbstractAppState implements
         // We also put the player in its starting position.
         playerNode = new Node("player");
         CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(1.5f, 3f, 1);
-        player = new CharacterControl(capsuleShape, 0.05f);   
+        player = new CharacterControl(capsuleShape, 0.05f);
+        player.addCollideWithGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
         player.setJumpSpeed(20);
         player.setFallSpeed(30);
         player.setGravity(30);
@@ -211,6 +213,8 @@ public class PlayAppState extends AbstractAppState implements
 
         // Init the mothership
         megaDrone = new MegaDrone("megaDrone", ball_B, playerNode);
+        megaDrone.getGhostControl().setCollisionGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
+        megaDrone.getGhostControl().setCollideWithGroups(PhysicsCollisionObject.COLLISION_GROUP_02);
 
         // We load the mothership for the player to hit
         setUpObjectives();
