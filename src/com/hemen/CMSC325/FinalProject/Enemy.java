@@ -10,7 +10,6 @@ package com.hemen.CMSC325.FinalProject;
  */
 abstract class Enemy {
     private boolean isHit;
-    private int points = 0;
   
     public Enemy() {
         this.isHit = false;
@@ -21,8 +20,4 @@ abstract class Enemy {
     public void hit() {isHit = true;}
     
     public void unhit() {isHit = false;}
-
-    public int getPoints() {return points;}
-
-    public void setPoints(int points) {this.points = points;}
 }
