@@ -134,6 +134,7 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
         
         // Enable the hud and gameplay state
         goToHud();
+        stateManager.getState(PlayAppState.class).resetLevel();
         stateManager.getState(PlayAppState.class).setEnabled(true);
     }
     
@@ -290,7 +291,7 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
      * to continue. It allows the user to review their stats.
      */
     public void ackEnd() {
-        stateManager.getState(PlayAppState.class).setEnabled(false);
+        //stateManager.getState(PlayAppState.class).setEnabled(false);
         goToStart();
     }
     

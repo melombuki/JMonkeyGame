@@ -26,7 +26,8 @@ public class MegaDrone extends Enemy {
     private Geometry g;
     private DroneControl control;
     private GhostControl gControl;
-    private final float radius = 10;
+    private final float innerRadius = 10;
+    private final float outterRadius = 50;
     private long lastSpawnTime = 0;
     private int hitPoints = 100;
     public static final int points = 500;
@@ -35,19 +36,20 @@ public class MegaDrone extends Enemy {
   
     
     public MegaDrone(String name, Material mat, Node target) {
-        s = new Sphere(32, 32, radius);
+        s = new Sphere(32, 32, innerRadius);
         g = new Geometry(name, s);
         g.setMaterial(mat);
         
         // Set up the minion queue
         minions = new HashSet<MicroDrone>();
         
-        // Greater radius than geo radius makes for much hit better detection
-        control = new DroneControl(new SphereCollisionShape(radius + 0.1f), 3f, target);
+        // Greater innerRadius than geo innerRadius makes for much hit better detection
+        control = new DroneControl(new SphereCollisionShape(innerRadius + 0.1f), 3f, target);
         control.setLinearDamping(0.7f);
+        control.setAngularDamping(1.0f);
         
         // Set up the ghost control as a proximity detector
-        gControl = new GhostControl(new SphereCollisionShape(radius*3f));
+        gControl = new GhostControl(new SphereCollisionShape(outterRadius));
         
         g.addControl(control);
         g.addControl(gControl);
@@ -77,6 +79,12 @@ public class MegaDrone extends Enemy {
         super.hit();
         hitPoints -= 10;
     }
+    
+    @Override
+    public void unhit() {
+        super.unhit();
+        this.hitPoints = 100;
+    }
 
     /**
      * @return the minions
@@ -94,5 +102,9 @@ public class MegaDrone extends Enemy {
             }
         }
         return false;
+    }
+    
+    public void clearMinions() {
+        minions.clear();
     }
 }
