@@ -50,8 +50,10 @@ public class DroneControl extends RigidBodyControl {
 //                                           tpf,
 //                                           target.,
 //                                           currVelocity);
-        direction = getPhysicsLocation().subtract(target.getWorldTranslation());
-        setPhysicsRotation(rot.fromAxes(Vector3f.UNIT_Y.cross(direction).normalize(), Vector3f.UNIT_Y, direction.normalize()).normalizeLocal());
+//        direction = getPhysicsLocation().subtract(target.getWorldTranslation());
+//        setPhysicsRotation(rot.fromAxes(Vector3f.UNIT_Y.cross(direction).normalize(),
+//                           Vector3f.UNIT_Y,
+//                           Vector3f.UNIT_Y.cross(direction).normalize()));
     }
     
     public float getSpeed() {
