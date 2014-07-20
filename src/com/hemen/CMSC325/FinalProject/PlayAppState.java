@@ -131,7 +131,7 @@ public class PlayAppState extends AbstractAppState implements
         
         // Get the physics app state
         bulletAppState = stateManager.getState(BulletAppState.class);
-        //bulletAppState.getPhysicsSpace().enableDebug(assetManager);
+        bulletAppState.getPhysicsSpace().enableDebug(assetManager);
 
         // Set up the bullet object
         bullet = new Sphere(32, 32, 0.2f, true, false);
@@ -211,7 +211,7 @@ public class PlayAppState extends AbstractAppState implements
         player.setPhysicsLocation(new Vector3f(40, 8f, -480f));
 
         // Init the mothership and make the sensor field only collide with the player
-        megaDrone = new MegaDrone("megaDrone", ball_B, playerNode);
+        megaDrone = new MegaDrone("megaDrone", ball_B, playerNode, assetManager);
         megaDrone.getGhostControl().setCollisionGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
         megaDrone.getGhostControl().setCollideWithGroups(PhysicsCollisionObject.COLLISION_GROUP_02);
 
@@ -318,7 +318,7 @@ public class PlayAppState extends AbstractAppState implements
             rootNode.attachChild(shotSound);
             rootNode.attachChild(boomSound);
             rootNode.attachChild(playerNode);
-            rootNode.attachChild(megaDrone.getGeo());
+            rootNode.attachChild(megaDrone.getSpatial());
             
             // Establish player controls
             initControls();
@@ -393,8 +393,8 @@ public class PlayAppState extends AbstractAppState implements
             MicroDrone m = megaDrone.createMicroDrone(ball_A, player.getPhysicsLocation());
             if(m != null) {
                 Vector3f v = playerNode.getWorldTranslation().
-                        subtract(megaDrone.getGeo().getWorldTranslation()).normalize();
-                m.getRigidBodyControl().setPhysicsLocation(megaDrone.getGeo().getWorldTranslation().add(v.mult(10f)).setY(12));
+                        subtract(megaDrone.getSpatial().getWorldTranslation()).normalize();
+                m.getRigidBodyControl().setPhysicsLocation(megaDrone.getSpatial().getWorldTranslation().add(v.mult(10f)).setY(12));
                 rootNode.attachChild(m.getGeo());
                 bulletAppState.getPhysicsSpace().add(m.getRigidBodyControl()); 
             }
@@ -404,19 +404,19 @@ public class PlayAppState extends AbstractAppState implements
         if(NodeA.getName().equals("megaDrone") && NodeB.getName().equals("bullet")) {
             megaDrone.hit();
             if(megaDrone.getHitPoints() > 0) {
-                megaDroneHitSound.setLocalTranslation(megaDrone.getGeo().getWorldTranslation());
+                megaDroneHitSound.setLocalTranslation(megaDrone.getSpatial().getWorldTranslation());
                 megaDroneHitSound.playInstance();
             } else {
-                boomSound.setLocalTranslation(megaDrone.getGeo().getWorldTranslation());
+                boomSound.setLocalTranslation(megaDrone.getSpatial().getWorldTranslation());
                 boomSound.playInstance();
             }
         } else if(NodeB.getName().equals("megaDrone") && NodeA.getName().equals("bullet")) {
             megaDrone.hit();
             if(megaDrone.getHitPoints() > 0) {
-                megaDroneHitSound.setLocalTranslation(megaDrone.getGeo().getWorldTranslation());
+                megaDroneHitSound.setLocalTranslation(megaDrone.getSpatial().getWorldTranslation());
                 megaDroneHitSound.playInstance();
             } else {
-                boomSound.setLocalTranslation(megaDrone.getGeo().getWorldTranslation());
+                boomSound.setLocalTranslation(megaDrone.getSpatial().getWorldTranslation());
                 boomSound.playInstance();
             }
         }

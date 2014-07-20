@@ -6,6 +6,7 @@ package com.hemen.CMSC325.FinalProject;
 
 import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 
@@ -18,19 +19,19 @@ public class DroneControl extends RigidBodyControl {
     
     private Node target;
     private Vector3f steering;
-    private Vector3f prevVelocity;
-    private Vector3f currVelocity;
+    private Vector3f direction;
+    private Vector3f v;
+    private Quaternion rot = new Quaternion();
     
     public DroneControl(CollisionShape shape, float mass, Node target) {
         super(shape, mass);
-        prevVelocity = currVelocity = Vector3f.ZERO;
         this.target = target;
     }
     
     public DroneControl(CollisionShape shape, Node target) {
         super(shape, 1.0f);
-        prevVelocity = currVelocity = Vector3f.ZERO;
         this.target = target;
+        rot = new Quaternion(Quaternion.IDENTITY);
     }
     
     @Override
@@ -40,8 +41,8 @@ public class DroneControl extends RigidBodyControl {
         // Update the steering influence
         steering = target.getWorldTranslation().clone();
         steering = steering.subtract(getPhysicsLocation()).normalizeLocal();
-        steering.setY(1);
-        applyImpulse(steering.mult(0.3f), Vector3f.ZERO);
+        steering.setY(20);
+        applyImpulse(steering.mult(new Vector3f(0.3f, 1f, 0.3f)), Vector3f.ZERO);
 //        steering = persuit.calculateForce(getPhysicsLocation(),
 //                                           getLinearVelocity(),
 //                                           getSpeed(),
@@ -49,6 +50,8 @@ public class DroneControl extends RigidBodyControl {
 //                                           tpf,
 //                                           target.,
 //                                           currVelocity);
+        direction = getPhysicsLocation().subtract(target.getWorldTranslation());
+        setPhysicsRotation(rot.fromAxes(Vector3f.UNIT_Y.cross(direction).normalize(), Vector3f.UNIT_Y, direction.normalize()).normalizeLocal());
     }
     
     public float getSpeed() {
