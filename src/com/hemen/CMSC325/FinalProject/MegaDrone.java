@@ -29,8 +29,9 @@ public class MegaDrone extends Enemy {
     private final float innerRadius = 9;
     private final float outterRadius = 50;
     private long lastSpawnTime = 0;
-    private int hitPoints = 100;
-    public static final int points = 500;
+    private int health = 100;
+    public static final int hitPoint = 50;
+    public static final int killPoint = 500;
     
     private Set<MicroDrone> minions;
   
@@ -75,18 +76,18 @@ public class MegaDrone extends Enemy {
         return null; // no minion was added to the scene
     }
 
-    public int getHitPoints() {return hitPoints;}
+    public int gethealth() {return health;}
     
     @Override
     public void hit() {
         super.hit();
-        hitPoints -= 10;
+        health -= 10;
     }
     
     @Override
     public void unhit() {
         super.unhit();
-        this.hitPoints = 100;
+        this.health = 100;
     }
 
     /**
