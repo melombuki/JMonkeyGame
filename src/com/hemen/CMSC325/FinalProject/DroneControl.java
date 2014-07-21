@@ -11,19 +11,30 @@ import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 
 /**
- *
- * @author melombuki
+ * This class controls the movement of an object by making it "fly" towards
+ * its target. It is extremely simple and always tries to fly in a straight line
+ * directly to the target.
+ * 
+ * @author Joshua P. Hemen
  */
 public class DroneControl extends RigidBodyControl {
-    //private Persuit persuit = new Persuit();
-    
     private Node target;
-    private Vector3f impulse = new Vector3f(0.15f, 0f, 0.15f);
+    private Vector3f impulse = new Vector3f(0.15f, 0f, 0.15f); // default value
     private Vector3f steering;
     private Vector3f direction;
-    private Vector3f v;
     private Quaternion rot = new Quaternion();
+    private boolean doesFloat = false; //object will not float by default
+    private float height = 0;
     
+    // Allows the user to set a floating height value if desired
+    public DroneControl(CollisionShape shape, float mass, Node target, float height) {
+        super(shape, mass);
+        this.target = target;
+        this.height = height;
+        doesFloat = true;
+    }
+    
+    // Will not float if no value is passed for the height
     public DroneControl(CollisionShape shape, float mass, Node target) {
         super(shape, mass);
         this.target = target;
@@ -32,31 +43,34 @@ public class DroneControl extends RigidBodyControl {
     public DroneControl(CollisionShape shape, Node target) {
         super(shape, 1.0f);
         this.target = target;
-        rot = new Quaternion(Quaternion.IDENTITY);
     }
     
     @Override
     public void update(float tpf) {
         super.update(tpf);
         
-        setPhysicsLocation(getPhysicsLocation().setY(35f));
+        // Keep the object floating in the air if it is supposed to
+        if(doesFloat) {
+            setPhysicsLocation(getPhysicsLocation().setY(height));
+        }
+        
         // Update the steering influence
         steering = target.getWorldTranslation().clone();
         steering = steering.subtract(getPhysicsLocation()).normalize();
+        
+        // Actually move the object towards the target
         applyImpulse(steering.mult(impulse), Vector3f.ZERO);
-//        steering = persuit.calculateForce(getPhysicsLocation(),
-//                                           getLinearVelocity(),
-//                                           getSpeed(),
-//                                           1.5f,
-//                                           tpf,
-//                                           target.,
-//                                           currVelocity);
+        
+        // Rotate the object to look at the target
         direction = getPhysicsLocation().subtract(target.getWorldTranslation());
         setPhysicsRotation(rot.fromAxes(Vector3f.UNIT_Y.cross(direction).normalize(),
                            Vector3f.UNIT_Y,
                            Vector3f.UNIT_Y.cross(direction).normalize()));
     }
     
+    /*
+     * @return the "speed" of the object.
+     */
     public float getSpeed() {
         return getLinearVelocity().length();
     }

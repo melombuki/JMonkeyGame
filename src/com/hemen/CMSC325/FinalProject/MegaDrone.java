@@ -45,7 +45,8 @@ public class MegaDrone extends Enemy {
         // Set up the minion queue
         minions = new HashSet<MicroDrone>();
         
-        control = new DroneControl(new SphereCollisionShape(innerRadius), 3f, target);
+        // Creates a rough approximation of the shape and makes it float at Y = 35 
+        control = new DroneControl(new SphereCollisionShape(innerRadius), 3f, target, 35f);
         control.setLinearDamping(0.7f);
         control.setAngularDamping(1.0f);
         control.setFriction(0f);

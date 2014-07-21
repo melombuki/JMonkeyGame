@@ -86,8 +86,6 @@ public class PlayAppState extends AbstractAppState implements
     private AmbientLight al;
     private DirectionalLight dl;
     private Quaternion hoverJetQ;
-    private Quaternion yaw90 = new Quaternion().fromAngleAxis(
-                FastMath.HALF_PI, Vector3f.UNIT_Y);
     private boolean isRoundOver = false;
     
     // Temporary vectors used on each frame.
@@ -155,16 +153,15 @@ public class PlayAppState extends AbstractAppState implements
         initMaterials();
 
         // Init text for crosshair text
-        initCrossHairText();  
+        initCrossHairText();
 
         // We set up collision detection for the player by creating
         // a capsule collision shape and a CharacterControl.
-        // The CharacterControl offers extra settings for
-        // size, stepheight, jumping, falling, and gravity.
         // We also put the player in its starting position.
         playerNode = new Node("player");
         CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(1.5f, 3f, 1);
         player = new CharacterControl(capsuleShape, 0.05f);
+        player.setViewDirection(new Vector3f(1, 0, 0));
         player.addCollideWithGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
         player.setJumpSpeed(20);
         player.setFallSpeed(30);
@@ -267,10 +264,9 @@ public class PlayAppState extends AbstractAppState implements
         Spatial hJ = rootNode.getChild("hoverJet");
         float angles[] = new float[3];
         if(hJ != null) {
-            hoverJetQ.slerp(cam.getRotation().mult(yaw90), 0.025f);
+            hoverJetQ.slerp(cam.getRotation(), 0.025f);
             hoverJetQ.toAngles(angles);
-            hoverJetQ = hoverJetQ.fromAngleAxis(
-                    angles[1], Vector3f.UNIT_Y).normalizeLocal();
+            hoverJetQ.fromAngleAxis(angles[1], Vector3f.UNIT_Y).normalizeLocal();
             hJ.setLocalRotation(hoverJetQ);
         }
         
@@ -308,7 +304,7 @@ public class PlayAppState extends AbstractAppState implements
                 // I submitted a ticket to the JME3's tracking system with solution.
                 // Issue #643
                 chaseCam.setEnabled(true);
-                chaseCam.setDragToRotate(false);
+                chaseCam.setDragToRotate(false); //sets chaseCam.canRotate back to true
             }
 
             rootNode.attachChild(sceneModel);
