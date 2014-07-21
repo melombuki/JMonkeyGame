@@ -77,6 +77,7 @@
     <screen id="end" controller="com.hemen.CMSC325.FinalProject.GuiAppState">
         <layer id="background" childLayout="center">
             <image filename="Interface/HudBackground.png" height="100%" width="100%"></image>
+            <!-- TODO: Add a pretty picture of something or other -->
         </layer>
         <!-- -->
         <layer id="forground" childLayout="vertical" align="center">

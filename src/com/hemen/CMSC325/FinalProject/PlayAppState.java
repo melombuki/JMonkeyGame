@@ -1,9 +1,9 @@
-//TODO: get rid of the walls for the new largeScene. No longer need them as
-// the mountains fence the char in anyway.
-// 1. Add invisible plane triggers to case enemies to spawn at some location.
-// 2. Create more types of enemies and allow them to shoot at the player.
-// 3. Give yourself a health meter.
-// 4. Create an output file that is read in every time to load the high scores.
+//TODO: 
+// 1. Give yourself a health meter.
+// 2. Create an output file that is read in every time to load the high scores.
+// 3. Add explosion to the slideEnemy when player gets too close
+// 4. Add shooting capability to the slideEnemy
+// 5. Add the hillEnemy functionality
 
 package com.hemen.CMSC325.FinalProject;
 
@@ -48,7 +48,6 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Sphere;
-import java.util.Set;
 
 /**
  * This class contains all of the necessary objects and variables for the actual
@@ -215,11 +214,11 @@ public class PlayAppState extends AbstractAppState implements
         // We attach the scene and the player to the rootnode and the physics space,
         // to make them appear in the game world.
         bulletAppState.getPhysicsSpace().addAll(sceneModel);
-        //bulletAppState.getPhysicsSpace().add(playerNode); //I don't think I need this at all
         bulletAppState.getPhysicsSpace().add(player);
         bulletAppState.getPhysicsSpace().add(megaDrone.getRigidBodyControl());
         bulletAppState.getPhysicsSpace().add(megaDrone.getGhostControl());
         bulletAppState.getPhysicsSpace().add(slideEnemy.getEnemyControl());
+        bulletAppState.getPhysicsSpace().add(slideEnemy.getGhostControl());
         bulletAppState.getPhysicsSpace().addCollisionListener(this);
   }
     
@@ -334,6 +333,10 @@ public class PlayAppState extends AbstractAppState implements
         }
     }
 
+    //TODO: Clean this method up. First check for a bullet collision, then
+    //      if/else if for the second object involved and handle them there.
+    //      this should cut down on the number of checks required to be made.
+    //      Still need the mothership's airspace in a separate if though.
     /*
      * This method handles what to do when a collision occurs. It turns a ball
      * green if it has not been hit yet.
@@ -373,11 +376,15 @@ public class PlayAppState extends AbstractAppState implements
         
         // Check for infiltration of the mother ship's airspace
         if(megaDrone.getGhostControl().getOverlappingObjects().contains(playerNode.getControl(CharacterControl.class))) {
-            MicroDrone m = megaDrone.createMicroDrone(ball_A, player.getPhysicsLocation());
+            // Spawn a new drone if there is less than 4 in scene already
+            MicroDrone m = megaDrone.createMicroDrone(ball_A, player.getPhysicsLocation()); // returns null if should not add new drone
             if(m != null) {
+                // PLace the new drone between the player and the megaDrone
                 Vector3f v = playerNode.getWorldTranslation().
                         subtract(megaDrone.getSpatial().getWorldTranslation()).normalize();
                 m.getRigidBodyControl().setPhysicsLocation(megaDrone.getSpatial().getWorldTranslation().add(v.mult(10f)));
+                
+                // Attach the new drone to the scene and physics space
                 rootNode.attachChild(m.getGeo());
                 bulletAppState.getPhysicsSpace().add(m.getRigidBodyControl()); 
             }
@@ -386,11 +393,11 @@ public class PlayAppState extends AbstractAppState implements
         // Check for bullet hitting megaDrone
         if(NodeA.getName().equals("megaDrone") && NodeB.getName().equals("bullet")) {
             megaDrone.hit();
-            if(megaDrone.gethealth() > 0) {
+            if(megaDrone.gethealth() > 0) { //hit but not dead
                 megaDroneHitSound.setLocalTranslation(megaDrone.getSpatial().getWorldTranslation());
                 megaDroneHitSound.playInstance();
                 stateManager.getState(GuiAppState.class).showHitObject(NodeA.getName(), MegaDrone.hitPoint);
-            } else {
+            } else { //hit and dead
                 boomSound.setLocalTranslation(megaDrone.getSpatial().getWorldTranslation());
                 boomSound.playInstance();
                 stateManager.getState(GuiAppState.class).showHitObject(NodeA.getName(), MegaDrone.killPoint);
@@ -398,11 +405,11 @@ public class PlayAppState extends AbstractAppState implements
             
         } else if(NodeB.getName().equals("megaDrone") && NodeA.getName().equals("bullet")) {
             megaDrone.hit();
-            if(megaDrone.gethealth() > 0) {
+            if(megaDrone.gethealth() > 0) { //hit but not dead
                 megaDroneHitSound.setLocalTranslation(megaDrone.getSpatial().getWorldTranslation());
                 megaDroneHitSound.playInstance();
                 stateManager.getState(GuiAppState.class).showHitObject(NodeA.getName(), MegaDrone.hitPoint);
-            } else {
+            } else { //hit and dead
                 boomSound.setLocalTranslation(megaDrone.getSpatial().getWorldTranslation());
                 boomSound.playInstance();
                 stateManager.getState(GuiAppState.class).showHitObject(NodeA.getName(), MegaDrone.killPoint);
@@ -540,7 +547,7 @@ public class PlayAppState extends AbstractAppState implements
         // Reset the mothership back to start location
         resetMegaDrone();
         
-        // Reset the slide enemy
+        // Reset the slideEnemy
         resetSlideEnemy();
         
         // Reset the player back to start location and stop all movements
@@ -552,7 +559,10 @@ public class PlayAppState extends AbstractAppState implements
      * location.
      */
     public void resetSlideEnemy() {
+        // Reset the hit flag
         slideEnemy.unhit();
+        
+        // Put it back into the proper starting location
         slideEnemy.getGeo().setLocalTranslation(new Vector3f(0f, 10f, 0f));
     }
     
@@ -561,12 +571,19 @@ public class PlayAppState extends AbstractAppState implements
      * location.
      */
     public void resetMegaDrone() {
+        // Reset the isHit flag and health
         megaDrone.unhit();
+        
+        // Get rid of all of the minions that might be out in the scene graph
         for(MicroDrone m : megaDrone.getMinions()) {
             bulletAppState.getPhysicsSpace().remove(m.getRigidBodyControl());
             m.getGeo().removeFromParent();  
         }
+        
+        // Get rid of the minions from their actual mothership (megaDrone)
         megaDrone.clearMinions();
+        
+        // Put it back into the proper starting location
         megaDrone.getRigidBodyControl().setPhysicsLocation(new Vector3f(65f, 35f, -65f));
     }
     
@@ -574,7 +591,7 @@ public class PlayAppState extends AbstractAppState implements
      * This method places the character at the starting location.
      */
     public void resetPlayer() {
-        // Reset the player back to origin and stop all movements
+        // Put the player back to their proper start location
         player.setPhysicsLocation(new Vector3f(-95f, 30f, 95f));
     }
     
@@ -674,23 +691,7 @@ public class PlayAppState extends AbstractAppState implements
      */
     public int getTotalRounds() {
         return totalRounds;
-    }
-    
-    /*
-     * This method makes the floating balls move around straight to the player.
-     */
-    public void updateEnemyPositions() {
-        Vector3f playerLocation = player.getPhysicsLocation();
-        Vector3f v;
-        
-        Set<MicroDrone> m = megaDrone.getMinions();
-        
-        for(MicroDrone md : m) {
-            v = playerLocation.clone();
-            v = v.subtract(md.getRigidBodyControl().getPhysicsLocation()).normalizeLocal();
-            md.getRigidBodyControl().applyImpulse(v.mult(0.2f), Vector3f.ZERO);
-        }
-    }
+    }   
     
     /*
      * This method hadles what to do when the game is over, i.e. all rounds have
