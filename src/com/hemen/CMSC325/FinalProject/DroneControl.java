@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.hemen.CMSC325.FinalProject;
 
 import com.jme3.bullet.collision.shapes.CollisionShape;
@@ -19,7 +15,7 @@ import com.jme3.scene.Node;
  */
 public class DroneControl extends RigidBodyControl {
     private Node target;
-    private Vector3f impulse = new Vector3f(0.15f, 0f, 0.15f); // default value
+    private Vector3f impulse = new Vector3f(0.15f, 0f, 0.15f); //default value
     private Vector3f steering;
     private Vector3f direction;
     private Quaternion rot = new Quaternion();

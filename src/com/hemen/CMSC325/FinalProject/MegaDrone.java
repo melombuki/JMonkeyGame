@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.hemen.CMSC325.FinalProject;
 
 import com.jme3.asset.AssetManager;
@@ -10,7 +6,6 @@ import com.jme3.bullet.control.GhostControl;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.material.Material;
 import com.jme3.math.Vector3f;
-import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import java.util.HashSet;
@@ -21,17 +16,17 @@ import java.util.Set;
  * @author melombuki
  */
 public class MegaDrone extends Enemy {
-    private final int MAX_MINIONS = 3;
+    private final static int MAX_MINIONS = 3;
+    private Node target;
     private Spatial s;
-    private Geometry g;
     private DroneControl control;
     private GhostControl gControl;
     private final float innerRadius = 9;
     private final float outterRadius = 50;
     private long lastSpawnTime = 0;
     private int health = 100;
-    public static final int hitPoint = 50;
-    public static final int killPoint = 500;
+    public static final int hitPoint = 5;
+    public static final int killPoint = 100;
     
     private Set<MicroDrone> minions;
   
@@ -41,6 +36,9 @@ public class MegaDrone extends Enemy {
         s.setLocalTranslation(0f, -1f, 0f);
         s.setLocalScale(6f);
         s.setName(name);
+        
+        // Store handle to the target to pass to minions
+        this.target = target;
         
         // Set up the minion queue
         minions = new HashSet<MicroDrone>();
@@ -58,8 +56,6 @@ public class MegaDrone extends Enemy {
         s.addControl(gControl);
     }
     
-    public Geometry getGeo() {return g;}
-    
     public Spatial getSpatial() {return s;}
     
     public RigidBodyControl getRigidBodyControl() {return control;}
@@ -70,7 +66,7 @@ public class MegaDrone extends Enemy {
         if(System.currentTimeMillis() - lastSpawnTime > 1000 &&
                 getMinions().size() <= MAX_MINIONS) {
             lastSpawnTime = System.currentTimeMillis();
-            MicroDrone m = new MicroDrone("microDrone", mat);
+            MicroDrone m = new MicroDrone("microDrone", mat, target);
             getMinions().add(m);
             return m;
         }

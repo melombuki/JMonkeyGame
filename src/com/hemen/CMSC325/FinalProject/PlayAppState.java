@@ -273,9 +273,6 @@ public class PlayAppState extends AbstractAppState implements
         // Keep the audio listener moving with the camera
         listener.setLocation(cam.getLocation());
         listener.setRotation(cam.getRotation());
-        
-        // Make the balls move towards the player.
-        updateEnemyPositions();
     }
     
     @Override

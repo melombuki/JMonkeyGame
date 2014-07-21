@@ -1,12 +1,10 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.hemen.CMSC325.FinalProject;
 
 /**
- *
- * @author melombuki
+ * This is a very basic enemy that can be hit and unhit. I might want to add
+ * a field for health and point value but I don't want to change the whole game
+ * jsut yet.
+ * @author Joshua P. Hemen
  */
 abstract class Enemy {
     private boolean isHit;
