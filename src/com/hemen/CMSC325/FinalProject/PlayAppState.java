@@ -79,6 +79,7 @@ public class PlayAppState extends AbstractAppState implements
     private Vector3f walkDirection = new Vector3f();
     private boolean left = false, right = false, up = false, down = false;
     private MegaDrone megaDrone;
+    private SlideEnemy slideEnemy;
     private Material ball_hit, ball_A, ball_B, mat_bullet, mat_invis;
     private int totalRounds = 0; //1 round for each player * desired # of cycles
     private int totalPoints = 0;
@@ -210,6 +211,9 @@ public class PlayAppState extends AbstractAppState implements
         megaDrone = new MegaDrone("megaDrone", ball_B, playerNode, assetManager);
         megaDrone.getGhostControl().setCollisionGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
         megaDrone.getGhostControl().setCollideWithGroups(PhysicsCollisionObject.COLLISION_GROUP_02);
+        
+        // Init the simple sliding back and forth enemy
+        slideEnemy = new SlideEnemy("slideEnemy", ball_hit, playerNode);
 
         // We load the mothership for the player to hit
         setUpObjectives();
@@ -311,6 +315,7 @@ public class PlayAppState extends AbstractAppState implements
             rootNode.attachChild(boomSound);
             rootNode.attachChild(playerNode);
             rootNode.attachChild(megaDrone.getSpatial());
+            rootNode.attachChild(slideEnemy.getGeo());
             
             // Establish player controls
             initControls();
@@ -547,7 +552,10 @@ public class PlayAppState extends AbstractAppState implements
      */
     public void resetLevel() { 
         // Reset the mothership back to start location
-        resetMothership();
+        resetMegaDrone();
+        
+        // Reset the slide enemy
+        resetSlideEnemy();
         
         // Reset the player back to start location and stop all movements
         resetPlayer(); 
@@ -557,7 +565,16 @@ public class PlayAppState extends AbstractAppState implements
      * This method clears the mothership's drones, hit points, and resets its
      * location.
      */
-    public void resetMothership() {
+    public void resetSlideEnemy() {
+        slideEnemy.unhit();
+        slideEnemy.getEnemyControl().setPhysicsLocation(new Vector3f(0f, 25f, 0f));
+    }
+    
+    /*
+     * This method clears the mothership's drones, hit points, and resets its
+     * location.
+     */
+    public void resetMegaDrone() {
         megaDrone.unhit();
         for(MicroDrone m : megaDrone.getMinions()) {
             bulletAppState.getPhysicsSpace().remove(m.getRigidBodyControl());
