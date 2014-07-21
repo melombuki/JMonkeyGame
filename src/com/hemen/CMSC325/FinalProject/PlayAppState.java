@@ -203,9 +203,6 @@ public class PlayAppState extends AbstractAppState implements
         chaseCam.setMinVerticalRotation(-(FastMath.HALF_PI+ 0.7f));
         chaseCam.setMaxVerticalRotation(FastMath.HALF_PI*0.8f);
         chaseCam.setInvertVerticalAxis(true);
-        
-        // Move the player to the starting location
-        player.setPhysicsLocation(new Vector3f(-95f, 30f, 95f));
 
         // Init the mothership and make the sensor field only collide with the player
         megaDrone = new MegaDrone("megaDrone", ball_B, playerNode, assetManager);
@@ -214,15 +211,15 @@ public class PlayAppState extends AbstractAppState implements
         
         // Init the simple sliding back and forth enemy
         slideEnemy = new SlideEnemy("slideEnemy", ball_hit, playerNode);
-
-        // We load the mothership for the player to hit
-        setUpObjectives();
         
         // We attach the scene and the player to the rootnode and the physics space,
         // to make them appear in the game world.
         bulletAppState.getPhysicsSpace().addAll(sceneModel);
-        bulletAppState.getPhysicsSpace().add(playerNode);
+        //bulletAppState.getPhysicsSpace().add(playerNode); //I don't think I need this at all
         bulletAppState.getPhysicsSpace().add(player);
+        bulletAppState.getPhysicsSpace().add(megaDrone.getRigidBodyControl());
+        bulletAppState.getPhysicsSpace().add(megaDrone.getGhostControl());
+        bulletAppState.getPhysicsSpace().add(slideEnemy.getEnemyControl());
         bulletAppState.getPhysicsSpace().addCollisionListener(this);
   }
     
@@ -335,17 +332,6 @@ public class PlayAppState extends AbstractAppState implements
             rootNode.removeLight(dl);
             megaDrone.getMinions().clear();
         }
-    }
-
-    /*
-     * This method sets up the mothership of type MegaDrone and attaches its 
-     * physical controls to the physics space.
-     */
-    public void setUpObjectives() {
-        // Set up the big drone mother ship
-        bulletAppState.getPhysicsSpace().add(megaDrone.getRigidBodyControl());
-        bulletAppState.getPhysicsSpace().add(megaDrone.getGhostControl());
-        megaDrone.getRigidBodyControl().setPhysicsLocation(new Vector3f(65f, 35f, -65f));
     }
 
     /*
@@ -567,7 +553,7 @@ public class PlayAppState extends AbstractAppState implements
      */
     public void resetSlideEnemy() {
         slideEnemy.unhit();
-        slideEnemy.getEnemyControl().setPhysicsLocation(new Vector3f(0f, 25f, 0f));
+        slideEnemy.getGeo().setLocalTranslation(new Vector3f(0f, 10f, 0f));
     }
     
     /*

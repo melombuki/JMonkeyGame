@@ -18,9 +18,9 @@ import com.jme3.scene.shape.Box;
 public class HillEnemy extends Enemy {
     private Box s;
     private Geometry g;
-    private SlideEnemyControl control;
+    private HillEnemyControl control;
     private final float size = 2;
-    public final static int points = 25;
+    public final static int points = 10;
   
     public HillEnemy(String name, Material mat, Node target) {
         s = new Box(size, size, size);
@@ -28,11 +28,11 @@ public class HillEnemy extends Enemy {
         g.setMaterial(mat);
         
         // Greater radius than geo radius makes for much hit better detection
-        control = new SlideEnemyControl(new BoxCollisionShape(Vector3f.UNIT_XYZ.mult(size)), target);
+        control = new HillEnemyControl(new BoxCollisionShape(Vector3f.UNIT_XYZ.mult(size)), 1.0f, target);
         g.addControl(control);
     }
     
     public Geometry getGeo() {return g;}
     
-    public SlideEnemyControl getEnemyControl() {return control;}
+    public HillEnemyControl getEnemyControl() {return control;}
 }
