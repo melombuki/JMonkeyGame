@@ -22,9 +22,12 @@ public class SlideEnemy extends Enemy {
     private SlideEnemyControl control;
     private GhostControl gControl;
     private Node target; //need to know location to shoot at it
+    private Vector3f direction;
     private final float size = 2;
     public final static int points = 10;
     private static final float outterRadius = 10;
+    private long shotMark = 0;
+    SphereCollisionShape bulletCollisionShape = new SphereCollisionShape(0.2f);
   
     public SlideEnemy(String name, Material mat, Node target) {
         // Set up the visual parts of this object
@@ -42,12 +45,35 @@ public class SlideEnemy extends Enemy {
         g.addControl(gControl);
     }
     
+    /**
+     * This method returns the geometry for this object.
+     * @return g The object's geometry
+     */
     public Geometry getGeo() {return g;}
     
+    /**
+     * This mehtod returns the physical control for this object.
+     * @return control The actual physical control for the object
+     */
     public SlideEnemyControl getEnemyControl() {return control;}
 
     /**
-     * @return the gControl
+     * This method returns the proximity sensor ghost control for this object.
+     * It is a shpere that extends from the center to a distance of outterRadius.
+     * @return gControl The proximity sensor
      */
     public GhostControl getGhostControl() {return gControl;}
+    
+    /*
+     * This method creates a bullet every 2 seconds with the appropriate
+     * direction towards the target. The bullet object is null when it should not
+     * fire, and will return the actual bullet when it should be fired.
+     */
+    public Vector3f shoot(Material mat_bullet) {
+        if(System.currentTimeMillis() - shotMark > 2000) {
+            shotMark = System.currentTimeMillis(); //reset the time mark
+            return target.getWorldTranslation().subtract(control.getPhysicsLocation()).normalize();
+        }
+        return null;
+    }
 }

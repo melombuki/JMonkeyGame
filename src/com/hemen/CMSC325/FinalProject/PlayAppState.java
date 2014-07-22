@@ -87,11 +87,12 @@ public class PlayAppState extends AbstractAppState implements
     private DirectionalLight dl;
     private Quaternion hoverJetQ;
     private boolean isRoundOver = false;
-    
+
     // Temporary vectors used on each frame.
     // They here to avoid instanciating new vectors on each frame
     private Vector3f camDir = new Vector3f();
     private Vector3f camLeft = new Vector3f();
+    private Vector3f slideEnemyBullet = null;
     
     // Special Effects
     private Shockwave shockwave;
@@ -104,6 +105,7 @@ public class PlayAppState extends AbstractAppState implements
     // Gui Stuff
     private BitmapFont guiFont;
     private BitmapText ch;
+    public boolean isRunning = false;
      
     public PlayAppState() {
         totalRounds = 2;  // one round per player 
@@ -210,6 +212,8 @@ public class PlayAppState extends AbstractAppState implements
         
         // Init the simple sliding back and forth enemy
         slideEnemy = new SlideEnemy("slideEnemy", ball_hit, playerNode);
+        megaDrone.getGhostControl().setCollisionGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
+        megaDrone.getGhostControl().setCollideWithGroups(PhysicsCollisionObject.COLLISION_GROUP_02);
         
         // We attach the scene and the player to the rootnode and the physics space,
         // to make them appear in the game world.
@@ -231,48 +235,66 @@ public class PlayAppState extends AbstractAppState implements
    */
     @Override
     public void update(float tpf) {
-        // Check if round is completed (i.e. all balls hit), or the game is over
-        if(megaDrone.gethealth() <= 0) {
-            isRoundOver = true;
+        // Only update anything when the player is playing
+        if(isRunning) {
+            // Check if round is completed (i.e. all balls hit), or the game is over
+            if(megaDrone.gethealth() <= 0) {
+                isRoundOver = true;
+            }
+
+            if(isRoundOver) {
+                // Game over. No rounds left, quit this appstate
+                if(currentRound == totalRounds) {gameOver();}
+                else {roundOver();} // Just the end the current round
+            }
+
+            // Handle player movement (the user's character)
+            camDir = cam.getDirection().multLocal(0.6f); // The use of multLocal here is to control the rate of movement multiplier for character walk speed.
+            camLeft = cam.getLeft().multLocal(0.4f);
+            walkDirection.set(0, 0, 0);
+            if (left) {
+                walkDirection.addLocal(camLeft);
+            }
+            if (right) {
+                walkDirection.addLocal(camLeft.negate());
+            }
+            if (up) {
+                walkDirection.addLocal(camDir);
+            }
+            if (down) {
+                walkDirection.addLocal(camDir.negate());
+            }
+            player.setWalkDirection(walkDirection);
+
+            // Slowly adjust the hoverJet to match camera direction
+            Spatial hJ = rootNode.getChild("hoverJet");
+            float angles[] = new float[3];
+            if(hJ != null) {
+                hoverJetQ.slerp(cam.getRotation(), 0.025f);
+                hoverJetQ.toAngles(angles);
+                hoverJetQ.fromAngleAxis(angles[1], Vector3f.UNIT_Y).normalizeLocal();
+                hJ.setLocalRotation(hoverJetQ);
+            }
+
+            // Attempt to have slideEnemy shoot
+            slideEnemyBullet = slideEnemy.shoot(mat_bullet);
+            if(slideEnemyBullet != null) {
+                // Create and move the bullet
+                Geometry bulletg = new Geometry("bullet1", bullet);
+                bulletg.setMaterial(mat_bullet);
+                bulletg.setLocalTranslation(slideEnemy.getEnemyControl().getPhysicsLocation().add(slideEnemyBullet.mult(12f)));
+                bulletg.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
+                bulletg.addControl(new RigidBodyControl(bulletCollisionShape, 10f));
+                bulletg.getControl(RigidBodyControl.class).setCcdMotionThreshold(0.01f);
+                bulletg.getControl(RigidBodyControl.class).setLinearVelocity(slideEnemyBullet.mult(250f));
+                rootNode.attachChild(bulletg);
+                getPhysicsSpace().add(bulletg);
+            }
+
+            // Keep the audio listener moving with the camera
+            listener.setLocation(cam.getLocation());
+            listener.setRotation(cam.getRotation());
         }
-        
-        if(isRoundOver) {
-            // Game over. No rounds left, quit this appstate
-            if(currentRound == totalRounds) {gameOver();}
-            else {roundOver();} // Just the end the current round
-        }
-        
-        // Handle player movement (the user's character)
-        camDir = cam.getDirection().multLocal(0.6f); // The use of multLocal here is to control the rate of movement multiplier for character walk speed.
-        camLeft = cam.getLeft().multLocal(0.4f);
-        walkDirection.set(0, 0, 0);
-        if (left) {
-            walkDirection.addLocal(camLeft);
-        }
-        if (right) {
-            walkDirection.addLocal(camLeft.negate());
-        }
-        if (up) {
-            walkDirection.addLocal(camDir);
-        }
-        if (down) {
-            walkDirection.addLocal(camDir.negate());
-        }
-        player.setWalkDirection(walkDirection);
-        
-        // Slowly adjust the hoverJet to match camera direction
-        Spatial hJ = rootNode.getChild("hoverJet");
-        float angles[] = new float[3];
-        if(hJ != null) {
-            hoverJetQ.slerp(cam.getRotation(), 0.025f);
-            hoverJetQ.toAngles(angles);
-            hoverJetQ.fromAngleAxis(angles[1], Vector3f.UNIT_Y).normalizeLocal();
-            hJ.setLocalRotation(hoverJetQ);
-        }
-        
-        // Keep the audio listener moving with the camera
-        listener.setLocation(cam.getLocation());
-        listener.setRotation(cam.getRotation());
     }
     
     @Override
@@ -377,12 +399,14 @@ public class PlayAppState extends AbstractAppState implements
         // Check for infiltration of the mother ship's airspace
         if(megaDrone.getGhostControl().getOverlappingObjects().contains(playerNode.getControl(CharacterControl.class))) {
             // Spawn a new drone if there is less than 4 in scene already
-            MicroDrone m = megaDrone.createMicroDrone(ball_A, player.getPhysicsLocation()); // returns null if should not add new drone
+            MicroDrone m = megaDrone.createMicroDrone(ball_A); // returns null if should not add new drone
             if(m != null) {
                 // PLace the new drone between the player and the megaDrone
                 Vector3f v = playerNode.getWorldTranslation().
                         subtract(megaDrone.getSpatial().getWorldTranslation()).normalize();
-                m.getRigidBodyControl().setPhysicsLocation(megaDrone.getSpatial().getWorldTranslation().add(v.mult(10f)));
+                v.setY(playerNode.getWorldTranslation().y);
+                m.getRigidBodyControl().setPhysicsLocation(
+                        megaDrone.getSpatial().getWorldTranslation().add(v.mult(new Vector3f(15f, 1f, 15f))));
                 
                 // Attach the new drone to the scene and physics space
                 rootNode.attachChild(m.getGeo());
@@ -417,10 +441,10 @@ public class PlayAppState extends AbstractAppState implements
         }
         
         // Remove the bullet physics control from the world
-        if(NodeA.getName().equals("bullet")) {
+        if(NodeA.getName().equals("bullet") || NodeA.getName().equals("bullet1")) {
             bulletAppState.getPhysicsSpace().remove(e.getNodeA());
             NodeA.removeFromParent();
-        } else if(NodeB.getName().equals("bullet")) {
+        } else if(NodeB.getName().equals("bullet") || NodeB.getName().equals("bullet1")) {
             bulletAppState.getPhysicsSpace().remove(e.getNodeB());
             NodeB.removeFromParent();       
         }
@@ -701,6 +725,7 @@ public class PlayAppState extends AbstractAppState implements
     public void gameOver() {
         // Disable the physics and game play app states and look at the ship
         bulletAppState.setEnabled(false);
+        isRunning = false;
 
 
         chaseCam.setEnabled(false);

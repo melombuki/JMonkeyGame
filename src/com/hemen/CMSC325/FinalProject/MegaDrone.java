@@ -22,7 +22,7 @@ public class MegaDrone extends Enemy {
     private DroneControl control;
     private GhostControl gControl;
     private final float innerRadius = 9;
-    private final float outterRadius = 50;
+    private final float outterRadius = 30;
     private long lastSpawnTime = 0;
     private int health = 100;
     public static final int hitPoint = 5;
@@ -62,7 +62,7 @@ public class MegaDrone extends Enemy {
     
     public GhostControl getGhostControl() {return gControl;}
     
-    public MicroDrone createMicroDrone(Material mat, Vector3f playerLocation) {
+    public MicroDrone createMicroDrone(Material mat) {
         if(System.currentTimeMillis() - lastSpawnTime > 1000 &&
                 getMinions().size() <= MAX_MINIONS) {
             lastSpawnTime = System.currentTimeMillis();

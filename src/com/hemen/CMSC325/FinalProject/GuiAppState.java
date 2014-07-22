@@ -132,6 +132,9 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
         // Set the number of rounds and players for the game
         stateManager.getState(PlayAppState.class).setTotalRounds(rounds);
         
+        // Start updating the game
+        stateManager.getState(PlayAppState.class).isRunning = true;
+        
         // Enable the hud and gameplay state
         goToHud();
         stateManager.getState(PlayAppState.class).resetLevel();
