@@ -150,8 +150,6 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
         
         // Verify valid user input
         if(!isValid(initials)) return; //do nothing if not valid input
-
-        System.out.println(initials);
         
         // Start the timer since start of game
         startMark = timer.getTimeInSeconds();
