@@ -15,6 +15,7 @@ import com.jme3.scene.Node;
 import com.jme3.system.Timer;
 import de.lessvoid.nifty.Nifty;
 import de.lessvoid.nifty.controls.DropDown;
+import de.lessvoid.nifty.controls.TextField;
 import de.lessvoid.nifty.elements.render.TextRenderer;
 import de.lessvoid.nifty.screen.Screen;
 import de.lessvoid.nifty.screen.ScreenController;
@@ -58,6 +59,7 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
     private DropDown           totalRounds;
     private int                totalPointsEnd = 0;
     private String[]           scores;
+    private String             initials = "unk";
     
     public GuiAppState() {}
     
@@ -143,10 +145,19 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
      * This method starts the game app state.
      */
     public void startGame() {
+        // Get the user's initials that they entered
+        initials = findTextFieldControl("userInitials").getRealText();
+        
+        // Verify valid user input
+        if(!isValid(initials)) return; //do nothing if not valid input
+
+        System.out.println(initials);
+        
+        // Start the timer since start of game
         startMark = timer.getTimeInSeconds();
-        int rounds = totalRounds.getSelectedIndex() + 1;
         
         // Set the number of rounds and players for the game
+        int rounds = totalRounds.getSelectedIndex() + 1;
         stateManager.getState(PlayAppState.class).setTotalRounds(rounds);
         
         // Start updating the game
@@ -233,10 +244,17 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
     }
     
     /*
-     * This method returns the drop down control to maninulation.
+     * This method returns the drop down control to manipulate.
      */
     private DropDown findDropDownControl(final String id) {
  	return screen.findNiftyControl(id, DropDown.class);
+    }
+    
+    /*
+     * This method returns the text field control to manipulate
+     */
+    private TextField findTextFieldControl(final String id) {
+        return screen.findNiftyControl(id, TextField.class);
     }
     
     /*
@@ -431,5 +449,13 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
         
         // Write the new scores to the high score file
         writeFile();
+    }
+
+    /*
+     * This method returns true if the user has properly entered their initials,
+     * and false if not.
+     */
+    private boolean isValid(String initials) {
+        return initials.matches("[a-zA-Z]{3}");
     }
 }
