@@ -16,22 +16,26 @@
             <panel id="panel_title" height="12.5%" width="75%" align="center" childLayout="center">  
                 <text text="Hemen's Killer Game (a.k.a. Project 1)" font="Interface/Fonts/Arial.fnt" color="#00ff" width="100%" height="100%" />
             </panel>
-            <panel id="panel_input" height="12.5%" width="25%" align="center" valign="center" childLayout="vertical">
+            <panel id="panel_input" height="25%" width="25%" align="center" valign="center" childLayout="vertical">
                 <panel childLayout="horizontal">
                     <text id="totalRoundsLabel" style="nifty-label" text="Total Rounds: " width="120px" align="left" textVAlign="center" textHAlign="left" />
                     <control id="totalRounds" name="dropDown" />
+                </panel>
+                <panel childLayout="horizontal">
+                    <text id="userInitialsLabel" style="nifty-label" text="Enter your initials: " width="120px" align="left" textVAlign="center" textHAlign="left" />
+                    <control id="userInitials" name="textfield" />
                 </panel>
             </panel>
             <panel id="panel_mid_bottom" height="50%" width="75%" align="center" childLayout="vertical">  
                 <text text="In this game you must shoot or touch all of the floating red (player 1) or blue (player 2) balls in order to complete your turn of the game. Once touched, the ball will turn green. There are two players and turns alternate back and forth. Once one player has hit all balls in the scene, the next set of balls will appear for player 2. Click the 'Start' button to start or the 'Quit' button to exit the game." font="Interface/Fonts/Arial.fnt" color="#00ff" width="100%" height="80%" wrap="true" />              
             </panel>
-            <panel id="panel_bottom" height="25%" width="75%" align="center" childLayout="horizontal">
-                <panel id="StartPanel" height="50%" width="50%" align="center" childLayout="center">
+            <panel id="panel_bottom" height="12.5%" width="75%" align="center" childLayout="horizontal">
+                <panel id="StartPanel" height="100%" width="50%" align="center" childLayout="center">
                     <control name="button" label="Start" id="StartButton" align="center" valign="center">
                         <interact onClick="startGame()" />
                     </control>
                 </panel>
-                <panel id="QuitPanel" height="50%" width="50%" align="center" childLayout="center">
+                <panel id="QuitPanel" height="100%" width="50%" align="center" childLayout="center">
                     <control name="button" label="Quit" id="QuitButton" align="center" valign="center">
                         <interact onClick="quit()" />
                     </control>
