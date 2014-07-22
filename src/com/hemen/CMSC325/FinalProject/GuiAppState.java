@@ -28,29 +28,30 @@ import java.util.concurrent.TimeUnit;
  * @author Joshua P. Hemen
  */
 public class GuiAppState extends AbstractAppState implements ScreenController {
-    private SimpleApplication app;
-    private Node              rootNode;
-    private AssetManager      assetManager;
-    private AppStateManager   stateManager;
-    private InputManager      inputManager;
-    private ViewPort          guiViewPort;
-    private AudioRenderer     audioRenderer;
-    private FlyByCamera       flyCam;
-    private Nifty             nifty;
-    private NiftyJmeDisplay   disp;
-    private Screen            screen;
-    private Timer             timer;
-    private float             hitMark = 0.0f;
-    private float             startMark = 0.0f;
-    private DropDown          totalRounds;
-    private int               totalPointsEnd = 0;
+    private SimpleApplication  app;
+    private Node               rootNode;
+    private AssetManager       assetManager;
+    private AppStateManager    stateManager;
+    private InputManager       inputManager;
+    private ViewPort           guiViewPort;
+    private AudioRenderer      audioRenderer;
+    private FlyByCamera        flyCam;
+    private Nifty              nifty;
+    private NiftyJmeDisplay    disp;
+    private Screen             screen;
+    private Timer              timer;
+    private static final float timeLimit = 300f;
+    private float              hitMark = 0.0f;
+    private float              startMark = 0.0f;
+    private DropDown           totalRounds;
+    private int                totalPointsEnd = 0;
     
     public GuiAppState() {}
     
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
     super.initialize(stateManager, app);
-    this.app = (SimpleApplication) app; // can cast Application to something more specific
+    this.app = (SimpleApplication) app; //can cast Application to something more specific
     this.rootNode     = this.app.getRootNode();
     this.assetManager = this.app.getAssetManager();
     this.stateManager = this.app.getStateManager();
@@ -71,12 +72,12 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
   }
     
     @Override
-    public void update(float tpf) {       
+    public void update(float tpf) {
         // Update a timer within the hud with time from start of screen and hanle
         // 5 minute time limit
         if(nifty.getCurrentScreen().getScreenId().equals("hud")) {
             // End the round or game at 5 minutes
-            if(timer.getTimeInSeconds() - startMark > 300f) { //5 minute limit
+            if(timer.getTimeInSeconds() - startMark > timeLimit) { //5 minute limit
                 if(stateManager.getState(PlayAppState.class).getCurrentRound() == 
                         stateManager.getState(PlayAppState.class).getTotalRounds()) {
                     stateManager.getState(PlayAppState.class).gameOver();

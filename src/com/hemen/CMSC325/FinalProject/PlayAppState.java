@@ -2,8 +2,7 @@
 // 1. Give yourself a health meter.
 // 2. Create an output file that is read in every time to load the high scores.
 // 3. Add explosion to the slideEnemy when player gets too close
-// 4. Add shooting capability to the slideEnemy
-// 5. Add the hillEnemy functionality
+// 4. Add the hillEnemy functionality
 
 package com.hemen.CMSC325.FinalProject;
 
