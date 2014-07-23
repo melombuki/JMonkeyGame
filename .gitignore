@@ -1,3 +1,5 @@
-/dist/
+dist/
 *.class
 highscores
+build/classes/com
+dist.zip
