@@ -57,6 +57,7 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
     private float              hitMark = 0.0f;
     private float              startMark = 0.0f;
     private DropDown           totalRounds;
+    private TextField          textField;
     private int                totalPointsEnd = 0;
     private String[]           scores;
     private String             initials = "unk";
@@ -76,7 +77,7 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
     this.timer        = this.app.getTimer();
 
     // Init the empty highscores String array
-    scores = new String[] {"1", "2", "3", "4", "5"};
+    scores = new String[] {"", "", "", "", ""};
     
     // Create and show the beginning gui display
     disp = new NiftyJmeDisplay(
@@ -85,8 +86,9 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
     nifty = disp.getNifty();
     nifty.fromXml("Interface/start.xml", "start", this);
     
-    // Initialize the drop down elements that is persistent
+    // Initialize the input elements that so they are
     initDropDown();
+    initTextField();
   }
     
     @Override
@@ -146,7 +148,7 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
      */
     public void startGame() {
         // Get the user's initials that they entered
-        initials = findTextFieldControl("userInitials").getRealText();
+        initials = textField.getRealText();
         
         // Verify valid user input
         if(!isValid(initials)) return; //do nothing if not valid input
@@ -211,15 +213,15 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
             
             // Show the high scores
             nifty.getCurrentScreen().findElementByName("1st").getRenderer(
-                    TextRenderer.class).setText("1: " + scores[0]);
+                    TextRenderer.class).setText("1: " + scores[0].replaceAll(":", " : "));
             nifty.getCurrentScreen().findElementByName("2nd").getRenderer(
-                    TextRenderer.class).setText("2: " + scores[1]);
+                    TextRenderer.class).setText("2: " + scores[1].replaceAll(":", " : "));
             nifty.getCurrentScreen().findElementByName("3rd").getRenderer(
-                    TextRenderer.class).setText("3: " + scores[2]);
+                    TextRenderer.class).setText("3: " + scores[2].replaceAll(":", " : "));
             nifty.getCurrentScreen().findElementByName("4th").getRenderer(
-                    TextRenderer.class).setText("4: " + scores[3]);
+                    TextRenderer.class).setText("4: " + scores[3].replaceAll(":", " : "));
             nifty.getCurrentScreen().findElementByName("5th").getRenderer(
-                    TextRenderer.class).setText("5: " + scores[4]);
+                    TextRenderer.class).setText("5: " + scores[4].replaceAll(":", " : "));
         }
     }
 
@@ -309,6 +311,13 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
 
             totalRounds.selectItemByIndex(0);
         }
+    }
+    
+    /*
+     * This method initializes the text field.
+     */
+    public void initTextField() {
+       textField = findTextFieldControl("userInitials");
     }
     
     /*
@@ -429,7 +438,7 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
         }
         
         // Map the players score
-        list.add(new HighScoreEntry(totalPointsEnd, "JPH"));
+        list.add(new HighScoreEntry(totalPointsEnd, initials));
 
         // Place the top 5 or fewer back into the scores String array
         Collections.sort(list);

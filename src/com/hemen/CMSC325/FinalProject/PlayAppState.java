@@ -197,6 +197,7 @@ public class PlayAppState extends AbstractAppState implements
         // Set up the camera bits
         flyCam.setEnabled(false);
         chaseCam = new ChaseCamera(cam, playerNode, inputManager);
+        chaseCam.setDefaultHorizontalRotation(FastMath.QUARTER_PI * 3f);
         chaseCam.setSmoothMotion(false);
         chaseCam.setLookAtOffset(new Vector3f(0, 6f, 0));
         chaseCam.setZoomSensitivity(0);
@@ -568,6 +569,9 @@ public class PlayAppState extends AbstractAppState implements
      * for one player.
      */
     public void resetLevel() { 
+        // Reset the total points counter back to nil
+        totalPoints = 0;
+        
         // Reset the mothership back to start location
         resetMegaDrone();
         
@@ -737,7 +741,6 @@ public class PlayAppState extends AbstractAppState implements
         
         // Reset everything else in case player starts over
         currentRound = 1; //reset the current round back to beginning
-        totalPoints = 0;
         isRoundOver = false;
         resetLevel();
         
