@@ -1,9 +1,8 @@
 //TODO: 
 // 1. Give yourself a health meter.
-// 2. Create an output file that is read in every time to load the high scores.
-// 3. Add explosion to the slideEnemy when player gets too close
-// 4. Add the hillEnemy functionality
-// 5. Make slideEnemy and hillEnemey respawn after being shot
+// 2. Add explosion to the slideEnemy when player gets too close
+// 3. Add the hillEnemy functionality
+// 4. Make slideEnemy and hillEnemey respawn after being shot
 
 package com.hemen.CMSC325.FinalProject;
 

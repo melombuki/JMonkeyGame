@@ -74,7 +74,7 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
     this.timer        = this.app.getTimer();
 
     // Init the empty highscores String array
-    scores = new String[] {"1", "2", "3", "4", "5"};
+    scores = new String[] {"", "", "", "", ""};
     
     // Create and show the beginning gui display
     disp = new NiftyJmeDisplay(
@@ -405,6 +405,11 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
         
         // Map all previous scores to initials
         String[] line;
+        //Testing
+        System.out.println(scores.length);
+        for(String s: scores)
+            System.out.println(s);
+        //Testing
         for(int i = 0; i < scores.length; i++) {
             if(scores[i].length() > 0) {
                 line = scores[i].split(":");
