@@ -86,11 +86,11 @@
             </panel>
             <panel id="blank" childLayout="vertical" height="69%" width="100%">
                 <!-- Takes up the 75% of the vertical space of this layer and the top. -->
-                <text id="highScores" text="This" font="Interface/Fonts/Arial.fnt" color="#00ff" width="100%" height="20%" />
-                <text id="highScores1" text="is" font="Interface/Fonts/Arial.fnt" color="#00ff" width="100%" height="20%" />
-                <text id="highScores2" text="a" font="Interface/Fonts/Arial.fnt" color="#00ff" width="100%" height="20%" />
-                <text id="highScores3" text="test" font="Interface/Fonts/Arial.fnt" color="#00ff" width="100%" height="20%" />
-                <text id="highScores3" text="If it were a real exercise, AAAHHHH!!!" font="Interface/Fonts/Arial.fnt" color="#00ff" width="100%" height="20%" />
+                <text id="1st" text="This" font="Interface/Fonts/Arial.fnt" color="#00ff" width="100%" height="20%" />
+                <text id="2nd" text="is" font="Interface/Fonts/Arial.fnt" color="#00ff" width="100%" height="20%" />
+                <text id="3rd" text="a" font="Interface/Fonts/Arial.fnt" color="#00ff" width="100%" height="20%" />
+                <text id="4th" text="test" font="Interface/Fonts/Arial.fnt" color="#00ff" width="100%" height="20%" />
+                <text id="5th" text="If it were a real exercise, AAAHHHH!!!" font="Interface/Fonts/Arial.fnt" color="#00ff" width="100%" height="20%" />
             </panel>
             <panel id="endButton" childLayout="center" height="25%" width="100%">
                 <control name="button" label="OK" id="EndButton" align="center" valign="center">

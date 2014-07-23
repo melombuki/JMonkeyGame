@@ -18,6 +18,22 @@ import de.lessvoid.nifty.controls.DropDown;
 import de.lessvoid.nifty.elements.render.TextRenderer;
 import de.lessvoid.nifty.screen.Screen;
 import de.lessvoid.nifty.screen.ScreenController;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -45,6 +61,7 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
     private float              startMark = 0.0f;
     private DropDown           totalRounds;
     private int                totalPointsEnd = 0;
+    private String[]           scores;
     
     public GuiAppState() {}
     
@@ -60,6 +77,9 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
     this.flyCam       = this.app.getFlyByCamera();
     this.timer        = this.app.getTimer();
 
+    // Init the empty highscores String array
+    scores = new String[] {"1", "2", "3", "4", "5"};
+    
     // Create and show the beginning gui display
     disp = new NiftyJmeDisplay(
             assetManager, inputManager, audioRenderer, guiViewPort);
@@ -179,6 +199,22 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
             // Set the end points
             nifty.getCurrentScreen().findElementByName("totalPointsEnd").getRenderer(
                     TextRenderer.class).setText("Total Score: " + totalPointsEnd);
+            
+            // Fill the high scores with those already saved and update as
+            //  necessary.
+            updateHighScores();
+            
+            // Show the high scores
+            nifty.getCurrentScreen().findElementByName("1st").getRenderer(
+                    TextRenderer.class).setText("1: " + scores[0]);
+            nifty.getCurrentScreen().findElementByName("2nd").getRenderer(
+                    TextRenderer.class).setText("2: " + scores[1]);
+            nifty.getCurrentScreen().findElementByName("3rd").getRenderer(
+                    TextRenderer.class).setText("3: " + scores[2]);
+            nifty.getCurrentScreen().findElementByName("4th").getRenderer(
+                    TextRenderer.class).setText("4: " + scores[3]);
+            nifty.getCurrentScreen().findElementByName("5th").getRenderer(
+                    TextRenderer.class).setText("5: " + scores[4]);
         }
     }
 
@@ -304,5 +340,95 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
      */
     public void setTotalPointsEnd(int points) {
         this.totalPointsEnd = points;
+    }
+    
+    /*
+     * This method writes the the highscores to the highscore file. Each line
+     * contains one set. A set consists of the player's initials and score
+     * delimited by ":".
+     */
+    private void writeFile() {
+        Charset charset = Charset.forName("US-ASCII");
+        Path outfile = Paths.get("highscores");
+        
+        // Writer the output file in proper format
+        try {
+            BufferedWriter writer = Files.newBufferedWriter(outfile, charset);
+            
+            for(int i = 0; i < scores.length; i++) {
+                writer.write(scores[i] + "\n");
+            }
+            writer.flush(); //make sure everything is written to the file
+            writer.close(); //close the bufferedwriter
+        } catch (IOException x) {
+            System.err.format("IOException: %s%n", x);
+        }
+    }
+    
+    /*
+     * This method reads in high score values from the file "highscores". Returns
+     * the scores as a String array containing the player's initials and score
+     * delimited by ":". Returns empty strings if the file does not exits.
+     */
+    private void readFile() {
+        Path infile = Paths.get("highscores");
+        
+        // Do nothing if the file does not already exist
+        if(!Files.exists(infile)) {
+            return;
+        }
+        
+        // Read the input file
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader("highscores"));
+            
+            String line; //single lines from the input file
+            for(int i = 0; i < 5; i++) {
+                line = reader.readLine();
+                if(line == null) {
+                     scores[i] = "";
+                } else {
+                    scores[i] = line;
+                }
+            }
+            reader.close(); //close the bufferedwriter
+        } catch (IOException x) {
+            System.err.format("IOException: %s%n", x);
+        }
+    }
+    
+    /*
+     * This method sets the scores String array with the appropriate new
+     * highscores and writes them out to the highscore file.
+     */
+    private void updateHighScores() {
+        List<HighScoreEntry> list = new ArrayList<HighScoreEntry>();
+        
+        // Fill scores with any previous entries
+        readFile();
+        
+        // Map all previous scores to initials
+        String[] line;
+        for(int i = 0; i < scores.length; i++) {
+            if(scores[i].length() > 0) {
+                line = scores[i].split(":");
+                list.add(new HighScoreEntry(Integer.parseInt(line[0]), line[1]));
+            }
+        }
+        
+        // Map the players score
+        list.add(new HighScoreEntry(totalPointsEnd, "JPH"));
+
+        // Place the top 5 or fewer back into the scores String array
+        Collections.sort(list);
+        HighScoreEntry entry;
+        int i = 0;
+        for(Iterator it = list.iterator(); it.hasNext() && i < 5; ) {
+            entry = (HighScoreEntry)it.next();
+            scores[i++] = entry.getScore() + ":" + entry.getInitials();
+        }
+        
+        // Write the new scores to the high score file
+        writeFile();
     }
 }

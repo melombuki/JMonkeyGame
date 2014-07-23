@@ -22,11 +22,10 @@ public class SlideEnemy extends Enemy {
     private SlideEnemyControl control;
     private GhostControl gControl;
     private Node target; //need to know location to shoot at it
-    private Vector3f direction;
-    private final float size = 2;
+    private final float size = 2; //half the total length of the enemy cube
     public final static int points = 10;
     private static final float outterRadius = 10;
-    private long shotMark = 0;
+    private long shotMark = 0; //time since last shot fired
     SphereCollisionShape bulletCollisionShape = new SphereCollisionShape(0.2f);
   
     public SlideEnemy(String name, Material mat, Node target) {
@@ -38,7 +37,7 @@ public class SlideEnemy extends Enemy {
         
         // Set up the physical parts of this object. It has a kinematic control 
         // with an extended ghost control for detection proximity.
-        control = new SlideEnemyControl(g, new BoxCollisionShape(Vector3f.UNIT_XYZ.mult(size)), 1f, target);
+        control = new SlideEnemyControl(g, new BoxCollisionShape(Vector3f.UNIT_XYZ.mult(size)), 1f);
         control.setKinematic(true);
         gControl = new GhostControl(new SphereCollisionShape(outterRadius));
         g.addControl(control);

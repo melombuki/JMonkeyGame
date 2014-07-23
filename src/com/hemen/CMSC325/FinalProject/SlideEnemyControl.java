@@ -4,7 +4,6 @@ import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
-import com.jme3.scene.Node;
 
 /**
  * This class creates an extremely basic enemy movement that moves it back and 
@@ -14,15 +13,13 @@ import com.jme3.scene.Node;
  * @author Joshua P. Hemen
  */
 public class SlideEnemyControl extends RigidBodyControl {
-    private Node target;
     private float speed = 10.0f;
     private Geometry g;
     private Vector3f location;
     private static final float distance = 65f;
     
-    public SlideEnemyControl(Geometry g, CollisionShape shape, float mass, Node target) {
+    public SlideEnemyControl(Geometry g, CollisionShape shape, float mass) {
         super(shape, mass);
-        this.target = target;
         this.g = g;
     }    
     

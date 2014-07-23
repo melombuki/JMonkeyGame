@@ -3,6 +3,7 @@
 // 2. Create an output file that is read in every time to load the high scores.
 // 3. Add explosion to the slideEnemy when player gets too close
 // 4. Add the hillEnemy functionality
+// 5. Make slideEnemy and hillEnemey respawn after being shot
 
 package com.hemen.CMSC325.FinalProject;
 
@@ -72,9 +73,8 @@ public class PlayAppState extends AbstractAppState implements
     // Appstate specific fields
     private Spatial sceneModel;
     private BulletAppState bulletAppState;
-    private Node playerNode; //wraps player CharControl with a name
+    private Node playerNode; //wraps player CharacterControl with a name
     private CharacterControl player;
-    private Vector3f walkDirection = new Vector3f();
     private boolean left = false, right = false, up = false, down = false;
     private MegaDrone megaDrone;
     private SlideEnemy slideEnemy;
@@ -84,13 +84,14 @@ public class PlayAppState extends AbstractAppState implements
     private int currentRound = 1;
     private AmbientLight al;
     private DirectionalLight dl;
-    private Quaternion hoverJetQ;
+    private Quaternion hoverJetQ; //rotation of the hover jet
     private boolean isRoundOver = false;
 
     // Temporary vectors used on each frame.
     // They here to avoid instanciating new vectors on each frame
     private Vector3f camDir = new Vector3f();
     private Vector3f camLeft = new Vector3f();
+    private Vector3f walkDirection = new Vector3f();
     private Vector3f slideEnemyBullet = null;
     
     // Special Effects
@@ -104,7 +105,7 @@ public class PlayAppState extends AbstractAppState implements
     // Gui Stuff
     private BitmapFont guiFont;
     private BitmapText ch;
-    public boolean isRunning = false;
+    public boolean isRunning = false; //encasulate with a getter method
      
     public PlayAppState() {
         totalRounds = 2;  // one round per player 
