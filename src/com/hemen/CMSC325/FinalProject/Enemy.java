@@ -6,8 +6,8 @@ package com.hemen.CMSC325.FinalProject;
  * jsut yet.
  * @author Joshua P. Hemen
  */
-abstract class Enemy {
-    private boolean isHit;
+public abstract class Enemy {
+    private boolean isHit = false;
   
     public Enemy() {
         this.isHit = false;
