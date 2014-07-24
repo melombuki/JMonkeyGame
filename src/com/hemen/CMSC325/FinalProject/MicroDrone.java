@@ -17,7 +17,7 @@ import com.jme3.scene.shape.Sphere;
 public class MicroDrone extends Enemy {
     private Sphere s;
     private Geometry g;
-    private DroneControl control;
+    private MicroDroneControl control;
     private final float radius = 2;
     public final static int points = 25;
   
@@ -28,14 +28,12 @@ public class MicroDrone extends Enemy {
         g.setName("microDrone");
         
         // Greater radius than geo radius makes for much hit better detection
-        control = new DroneControl(new SphereCollisionShape(radius + 0.1f), 1f, target);
-        control.setImpulse(Vector3f.UNIT_XYZ.mult(0.2f));
-        control.setLinearDamping(0.8f);
+        control = new MicroDroneControl(new SphereCollisionShape(radius + 0.3f), 0.01f, target);
+        control.setLinearDamping(0.75f);
         g.addControl(control);
-        
     }
     
     public Geometry getGeo() {return g;}
     
-    public RigidBodyControl getRigidBodyControl() {return control;}
+    public RigidBodyControl getEnemyControl() {return control;}
 }

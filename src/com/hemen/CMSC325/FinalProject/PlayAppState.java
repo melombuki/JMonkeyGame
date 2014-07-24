@@ -78,6 +78,7 @@ public class PlayAppState extends AbstractAppState implements
     private boolean left = false, right = false, up = false, down = false;
     private MegaDrone megaDrone;
     private SlideEnemy slideEnemy;
+    private HillEnemy hillEnemy;
     private Material ball_hit, ball_A, ball_B, mat_bullet, mat_invis;
     private int totalRounds = 0; //1 round for each player * desired # of cycles
     private int totalPoints = 0;
@@ -92,6 +93,7 @@ public class PlayAppState extends AbstractAppState implements
     private Vector3f camDir = new Vector3f();
     private Vector3f camLeft = new Vector3f();
     private Vector3f walkDirection = new Vector3f();
+    private Vector3f boost = new Vector3f(0f, 0f, 0f);
     private Vector3f slideEnemyBullet = null;
     
     // Special Effects
@@ -131,7 +133,8 @@ public class PlayAppState extends AbstractAppState implements
         
         // Get the physics app state
         bulletAppState = stateManager.getState(BulletAppState.class);
-        bulletAppState.getPhysicsSpace().enableDebug(assetManager);
+        bulletAppState.setEnabled(false);
+        //bulletAppState.getPhysicsSpace().enableDebug(assetManager);
 
         // Set up the bullet object
         bullet = new Sphere(32, 32, 0.2f, true, false);
@@ -169,6 +172,8 @@ public class PlayAppState extends AbstractAppState implements
         player.setFallSpeed(30);
         player.setGravity(30);
         playerNode.addControl(player);
+        
+        listener.setVolume(0); //mute
         
         // Set up the shooting audio
         shotSound = new AudioNode(assetManager, "Sounds/Laser_Shoot3.wav");
@@ -211,20 +216,11 @@ public class PlayAppState extends AbstractAppState implements
         megaDrone.getGhostControl().setCollisionGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
         megaDrone.getGhostControl().setCollideWithGroups(PhysicsCollisionObject.COLLISION_GROUP_02);
         
-        // Init the simple sliding back and forth enemy
+        // Init the simple sliding back and forth enemy and hill enemy
+        hillEnemy = new HillEnemy("hillEnemy", ball_B, playerNode);
         slideEnemy = new SlideEnemy("slideEnemy", ball_hit, playerNode);
-        megaDrone.getGhostControl().setCollisionGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
-        megaDrone.getGhostControl().setCollideWithGroups(PhysicsCollisionObject.COLLISION_GROUP_02);
-        
-        // We attach the scene and the player to the rootnode and the physics space,
-        // to make them appear in the game world.
-        bulletAppState.getPhysicsSpace().addAll(sceneModel);
-        bulletAppState.getPhysicsSpace().add(player);
-        bulletAppState.getPhysicsSpace().add(megaDrone.getRigidBodyControl());
-        bulletAppState.getPhysicsSpace().add(megaDrone.getGhostControl());
-        bulletAppState.getPhysicsSpace().add(slideEnemy.getEnemyControl());
-        bulletAppState.getPhysicsSpace().add(slideEnemy.getGhostControl());
-        bulletAppState.getPhysicsSpace().addCollisionListener(this);
+        slideEnemy.getGhostControl().setCollisionGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
+        slideEnemy.getGhostControl().setCollideWithGroups(PhysicsCollisionObject.COLLISION_GROUP_02); 
   }
     
    /*
@@ -252,7 +248,8 @@ public class PlayAppState extends AbstractAppState implements
             // Handle player movement (the user's character)
             camDir = cam.getDirection().multLocal(0.6f); // The use of multLocal here is to control the rate of movement multiplier for character walk speed.
             camLeft = cam.getLeft().multLocal(0.4f);
-            walkDirection.set(0, 0, 0);
+            walkDirection.set(boost);
+            boost.set(0f, 0f, 0f); //reset the booster
             if (left) {
                 walkDirection.addLocal(camLeft);
             }
@@ -278,7 +275,7 @@ public class PlayAppState extends AbstractAppState implements
             }
 
             // Attempt to have slideEnemy shoot
-            slideEnemyBullet = slideEnemy.shoot(mat_bullet);
+//            slideEnemyBullet = slideEnemy.shoot(mat_bullet);
             if(slideEnemyBullet != null) {
                 // Create and move the bullet
                 Geometry bulletg = new Geometry("bullet1", bullet);
@@ -327,6 +324,7 @@ public class PlayAppState extends AbstractAppState implements
                 chaseCam.setDragToRotate(false); //sets chaseCam.canRotate back to true
             }
 
+            // Attach everything to the scene model
             rootNode.attachChild(sceneModel);
             rootNode.addLight(al);
             rootNode.addLight(dl);
@@ -335,18 +333,29 @@ public class PlayAppState extends AbstractAppState implements
             rootNode.attachChild(playerNode);
             rootNode.attachChild(megaDrone.getSpatial());
             rootNode.attachChild(slideEnemy.getGeo());
+            rootNode.attachChild(hillEnemy.getGeo());
+            
+            // Add everything to the physics space
+            bulletAppState.getPhysicsSpace().addAll(sceneModel);
+            bulletAppState.getPhysicsSpace().add(player);
+            bulletAppState.getPhysicsSpace().add(megaDrone.getEnemyControl());
+            bulletAppState.getPhysicsSpace().add(megaDrone.getGhostControl());
+            bulletAppState.getPhysicsSpace().add(slideEnemy.getEnemyControl());
+            bulletAppState.getPhysicsSpace().add(slideEnemy.getGhostControl());
+            bulletAppState.getPhysicsSpace().add(hillEnemy.getEnemyControl());
+            bulletAppState.getPhysicsSpace().addCollisionListener(this);
             
             // Establish player controls
-            initControls();
-            initCrossHairs(true);
+            enableControls(true);
+            enableCrossHairs(true);
             
             // Enable the physics app state
             bulletAppState.setEnabled(true);
         }
         else {
             // Remove playser input controls
-            removeControls();
-            initCrossHairs(false);
+            enableControls(false);
+            enableCrossHairs(false);
             bulletAppState.setEnabled(false);
             left = false; right = false; up = false; down = false;
             rootNode.detachAllChildren();
@@ -405,13 +414,13 @@ public class PlayAppState extends AbstractAppState implements
                 // PLace the new drone between the player and the megaDrone
                 Vector3f v = playerNode.getWorldTranslation().
                         subtract(megaDrone.getSpatial().getWorldTranslation()).normalize();
-                v.setY(playerNode.getWorldTranslation().y);
-                m.getRigidBodyControl().setPhysicsLocation(
-                        megaDrone.getSpatial().getWorldTranslation().add(v.mult(new Vector3f(15f, 1f, 15f))));
+                v.mult(20f);
+                m.getEnemyControl().setPhysicsLocation(megaDrone.getSpatial().getWorldTranslation().add(v));
+                m.getEnemyControl().getPhysicsLocation().setY(megaDrone.getEnemyControl().getPhysicsLocation().y);
                 
                 // Attach the new drone to the scene and physics space
                 rootNode.attachChild(m.getGeo());
-                bulletAppState.getPhysicsSpace().add(m.getRigidBodyControl()); 
+                bulletAppState.getPhysicsSpace().add(m.getEnemyControl()); 
             }
         }
         
@@ -530,38 +539,41 @@ public class PlayAppState extends AbstractAppState implements
             bulletg.getControl(RigidBodyControl.class).setLinearVelocity(cam.getDirection().mult(500));
             rootNode.attachChild(bulletg);
             getPhysicsSpace().add(bulletg);
+        } 
+        if(binding.equals("booster")) {
+            boost = cam.getDirection().clone().setY(0).mult(14f);
         }
     }
 
     /*
-     * This method sets up the custom key bindings for the player control.
+     * This method sets up the custom key bindings for the player control, or
+     * removes them.
      */
-    private void initControls() {
-        inputManager.addMapping("Left", new KeyTrigger(KeyInput.KEY_A));
-        inputManager.addMapping("Right", new KeyTrigger(KeyInput.KEY_D));
-        inputManager.addMapping("Up", new KeyTrigger(KeyInput.KEY_W));
-        inputManager.addMapping("Down", new KeyTrigger(KeyInput.KEY_S));
-        inputManager.addMapping("Jump", new KeyTrigger(KeyInput.KEY_SPACE));
-        inputManager.addMapping("shoot", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
-        inputManager.addListener(this, "Left");
-        inputManager.addListener(this, "Right");
-        inputManager.addListener(this, "Up");
-        inputManager.addListener(this, "Down");
-        inputManager.addListener(this, "Jump");
-        inputManager.addListener(this, "shoot");
-    }
-
-    /*
-     * This method removes the custom player key bindings.
-     */
-    private void removeControls() {
-        inputManager.deleteMapping("Left");
-        inputManager.deleteMapping("Right");
-        inputManager.deleteMapping("Up");
-        inputManager.deleteMapping("Down");
-        inputManager.deleteMapping("Jump");
-        inputManager.deleteMapping("shoot");
-        inputManager.removeListener(this);
+    private void enableControls(boolean enable) {
+        if(enable) {
+            inputManager.addMapping("Left", new KeyTrigger(KeyInput.KEY_A));
+            inputManager.addMapping("Right", new KeyTrigger(KeyInput.KEY_D));
+            inputManager.addMapping("Up", new KeyTrigger(KeyInput.KEY_W));
+            inputManager.addMapping("Down", new KeyTrigger(KeyInput.KEY_S));
+            inputManager.addMapping("Jump", new KeyTrigger(KeyInput.KEY_SPACE));
+            inputManager.addMapping("shoot", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
+            inputManager.addMapping("booster", new KeyTrigger(KeyInput.KEY_E));
+            inputManager.addListener(this, "Left");
+            inputManager.addListener(this, "Right");
+            inputManager.addListener(this, "Up");
+            inputManager.addListener(this, "Down");
+            inputManager.addListener(this, "Jump");
+            inputManager.addListener(this, "shoot");
+            inputManager.addListener(this, "booster");
+        } else {
+            inputManager.deleteMapping("Left");
+            inputManager.deleteMapping("Right");
+            inputManager.deleteMapping("Up");
+            inputManager.deleteMapping("Down");
+            inputManager.deleteMapping("Jump");
+            inputManager.deleteMapping("shoot");
+            inputManager.removeListener(this);
+        }
     }
 
     /*
@@ -572,14 +584,33 @@ public class PlayAppState extends AbstractAppState implements
         // Reset the total points counter back to nil
         totalPoints = 0;
         
+        // Clear all movement from the physics space
+        bulletAppState.getPhysicsSpace().clearForces();
+        
         // Reset the mothership back to start location
         resetMegaDrone();
         
         // Reset the slideEnemy
         resetSlideEnemy();
         
+        // Reset the hillEnemy
+        resetHillEnemy();
+        
         // Reset the player back to start location and stop all movements
         resetPlayer(); 
+    }
+    
+    /*
+     * This method clears the mothership's drones, hit points, and resets its
+     * location.
+     */
+    public void resetHillEnemy() {
+        // Reset the hit flag
+        hillEnemy.unhit();
+        
+        // Put it back into the proper starting location
+        hillEnemy.getEnemyControl().setPhysicsLocation(new Vector3f(-50f, 32f, -33f));
+        hillEnemy.getEnemyControl().setLinearVelocity(new Vector3f(0f, -9.81f, 0f));
     }
     
     /*
@@ -591,7 +622,7 @@ public class PlayAppState extends AbstractAppState implements
         slideEnemy.unhit();
         
         // Put it back into the proper starting location
-        slideEnemy.getGeo().setLocalTranslation(new Vector3f(0f, 10f, 0f));
+        slideEnemy.getGeo().setLocalTranslation(new Vector3f(0f, 15f, 0f));
     }
     
     /*
@@ -604,7 +635,7 @@ public class PlayAppState extends AbstractAppState implements
         
         // Get rid of all of the minions that might be out in the scene graph
         for(MicroDrone m : megaDrone.getMinions()) {
-            bulletAppState.getPhysicsSpace().remove(m.getRigidBodyControl());
+            bulletAppState.getPhysicsSpace().remove(m.getEnemyControl());
             m.getGeo().removeFromParent();  
         }
         
@@ -612,7 +643,7 @@ public class PlayAppState extends AbstractAppState implements
         megaDrone.clearMinions();
         
         // Put it back into the proper starting location
-        megaDrone.getRigidBodyControl().setPhysicsLocation(new Vector3f(65f, 35f, -65f));
+        megaDrone.getEnemyControl().setPhysicsLocation(new Vector3f(65f, 35f, -65f));
     }
     
     /*
@@ -635,7 +666,7 @@ public class PlayAppState extends AbstractAppState implements
      * This method adds or removes a crosshair to the screen to make shooting
      * much easier.
      */
-    private void initCrossHairs(boolean enable) {
+    private void enableCrossHairs(boolean enable) {
         if(enable) {
             // Center the crosshairs
             ch.setLocalTranslation(

@@ -13,42 +13,27 @@ import com.jme3.scene.Node;
  * 
  * @author Joshua P. Hemen
  */
-public class DroneControl extends RigidBodyControl {
+public class MegaDroneControl extends RigidBodyControl {
     private Node target;
     private Vector3f impulse = new Vector3f(0.15f, 0f, 0.15f); //default value
     private Vector3f steering;
     private Vector3f direction;
     private Quaternion rot = new Quaternion();
-    private boolean doesFloat = false; //object will not float by default
     private float height = 0;
     
     // Allows the user to set a floating height value if desired
-    public DroneControl(CollisionShape shape, float mass, Node target, float height) {
+    public MegaDroneControl(CollisionShape shape, float mass, Node target, float height) {
         super(shape, mass);
         this.target = target;
         this.height = height;
-        doesFloat = true;
-    }
-    
-    // Will not float if no value is passed for the height
-    public DroneControl(CollisionShape shape, float mass, Node target) {
-        super(shape, mass);
-        this.target = target;
-    }
-    
-    public DroneControl(CollisionShape shape, Node target) {
-        super(shape, 1.0f);
-        this.target = target;
     }
     
     @Override
     public void update(float tpf) {
         super.update(tpf);
         
-        // Keep the object floating in the air if it is supposed to
-        if(doesFloat) {
+        // Keep the object floating in the air
             setPhysicsLocation(getPhysicsLocation().setY(height));
-        }
         
         // Update the steering influence
         steering = target.getWorldTranslation().clone();
