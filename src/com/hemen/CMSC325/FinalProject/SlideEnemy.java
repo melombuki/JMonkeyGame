@@ -26,8 +26,10 @@ public class SlideEnemy extends Enemy {
     public final static int points = 10;
     private static final float outterRadius = 10;
     private long shotMark = 0; //time since last shot fired
+    private long spawnMark = 0;
   
     public SlideEnemy(String name, Material mat, Node target) {
+        spawnMark = System.currentTimeMillis();
         // Set up the visual parts of this object
         s = new Box(size, size, size);
         g = new Geometry(name, s);
@@ -68,7 +70,8 @@ public class SlideEnemy extends Enemy {
      * fire, and will return the actual bullet when it should be fired.
      */
     public Vector3f shoot(Material mat_bullet) {
-        if(System.currentTimeMillis() - shotMark > 2000 && !isHit()) {
+        if(System.currentTimeMillis() - (shotMark + spawnMark) > 2000 && !isHit()) {
+            spawnMark = 0; //nullify spawn marks influence on shooting
             shotMark = System.currentTimeMillis(); //reset the time mark
             return target.getWorldTranslation().subtract(control.getPhysicsLocation()).normalize();
         }
