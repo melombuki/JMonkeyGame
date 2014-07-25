@@ -34,7 +34,7 @@ public class MicroDroneControl extends RigidBodyControl {
         super.update(tpf);
         distance = target.getWorldTranslation().distance(this.getPhysicsLocation());
         
-        force = (distance > 15) ? 10f : 5f;
+        force = (distance > 10f) ? 10f : 5f;
 
         // Update the steering influence
         steering = target.getWorldTranslation().clone();

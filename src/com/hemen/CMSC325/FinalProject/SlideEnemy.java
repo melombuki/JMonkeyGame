@@ -26,7 +26,6 @@ public class SlideEnemy extends Enemy {
     public final static int points = 10;
     private static final float outterRadius = 10;
     private long shotMark = 0; //time since last shot fired
-    SphereCollisionShape bulletCollisionShape = new SphereCollisionShape(0.2f);
   
     public SlideEnemy(String name, Material mat, Node target) {
         // Set up the visual parts of this object
@@ -69,7 +68,7 @@ public class SlideEnemy extends Enemy {
      * fire, and will return the actual bullet when it should be fired.
      */
     public Vector3f shoot(Material mat_bullet) {
-        if(System.currentTimeMillis() - shotMark > 2000) {
+        if(System.currentTimeMillis() - shotMark > 2000 && !isHit()) {
             shotMark = System.currentTimeMillis(); //reset the time mark
             return target.getWorldTranslation().subtract(control.getPhysicsLocation()).normalize();
         }

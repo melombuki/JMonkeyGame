@@ -4,6 +4,10 @@
 //      |--> If not, get rid of it's ghostcontrol
 // 3. Add the hillEnemy functionality (not optional)
 // 4. Make slideEnemy and hillEnemey respawn after being shot (not optional)
+// 5. IDEA!!! create a ToRemoveQueue, and a ToAddQueue. Instead of handeling
+//      everything in the collision method, add the object to the queue,
+//      do what needs to be done in the update method to each elem in the queue.
+//      Can add a sounds Queue as well, full of custom sound+location objects.
 
 package com.hemen.CMSC325.FinalProject;
 
@@ -48,6 +52,8 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Sphere;
+import java.util.LinkedList;
+import java.util.Queue;
 
 /**
  * This class contains all of the necessary objects and variables for the actual
@@ -79,7 +85,7 @@ public class PlayAppState extends AbstractAppState implements
     private MegaDrone megaDrone;
     private SlideEnemy slideEnemy;
     private HillEnemy hillEnemy;
-    private Material ball_hit, ball_A, ball_B, mat_bullet, mat_invis;
+    private Material mat_green, mat_red, mat_blue, mat_bullet, mat_invis;
     private int totalRounds = 0; //1 round for each player * desired # of cycles
     private int totalPoints = 0;
     private int currentRound = 1;
@@ -87,6 +93,10 @@ public class PlayAppState extends AbstractAppState implements
     private DirectionalLight dl;
     private Quaternion hoverJetQ; //rotation of the hover jet
     private boolean isRoundOver = false;
+    
+    //Testing
+    // Respawn queue to pull cycles out of collision method
+    Queue<String> respawnQ;
 
     // Temporary vectors used on each frame.
     // They here to avoid instanciating new vectors on each frame
@@ -101,6 +111,7 @@ public class PlayAppState extends AbstractAppState implements
     Spatial NodeB;
     String NameA;
     String NameB;
+    String queueString;
     
     // Special Effects
     private Shockwave shockwave;
@@ -140,7 +151,7 @@ public class PlayAppState extends AbstractAppState implements
         // Get the physics app state
         bulletAppState = stateManager.getState(BulletAppState.class);
         bulletAppState.setEnabled(false);
-        //bulletAppState.getPhysicsSpace().enableDebug(assetManager);
+        bulletAppState.getPhysicsSpace().enableDebug(assetManager);
 
         // Set up the bullet object
         bullet = new Sphere(32, 32, 0.2f, true, false);
@@ -165,6 +176,9 @@ public class PlayAppState extends AbstractAppState implements
 
         // Init text for crosshair text
         initCrossHairText();
+        
+        // Init the respawnQ
+        respawnQ = new LinkedList<String>();
 
         // We set up collision detection for the player by creating
         // a capsule collision shape and a CharacterControl.
@@ -218,13 +232,15 @@ public class PlayAppState extends AbstractAppState implements
         chaseCam.setInvertVerticalAxis(true);
 
         // Init the mothership and make the sensor field only collide with the player
-        megaDrone = new MegaDrone("megaDrone", ball_B, playerNode, assetManager);
+        megaDrone = new MegaDrone("megaDrone", mat_blue, playerNode, assetManager);
+        // Only allow the ghost control to collide with the player
         megaDrone.getGhostControl().setCollisionGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
         megaDrone.getGhostControl().setCollideWithGroups(PhysicsCollisionObject.COLLISION_GROUP_02);
         
-        // Init the simple sliding back and forth enemy and hill enemy
-        hillEnemy = new HillEnemy("hillEnemy", ball_B, playerNode);
-        slideEnemy = new SlideEnemy("slideEnemy", ball_hit, playerNode);
+        // Init the simple slide enemy and hill enemy
+        hillEnemy = new HillEnemy("hillEnemy", mat_blue);
+        slideEnemy = new SlideEnemy("slideEnemy", mat_green, playerNode);
+        // Only allow the ghost control to collide with the player
         slideEnemy.getGhostControl().setCollisionGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
         slideEnemy.getGhostControl().setCollideWithGroups(PhysicsCollisionObject.COLLISION_GROUP_02); 
   }
@@ -281,20 +297,42 @@ public class PlayAppState extends AbstractAppState implements
             }
 
             // Attempt to have slideEnemy shoot
-//            slideEnemyBullet = slideEnemy.shoot(mat_bullet);
-            if(slideEnemyBullet != null) {
-                // Create and move the bullet
-                Geometry bulletg = new Geometry("bullet1", bullet);
-                bulletg.setMaterial(mat_bullet);
-                bulletg.setLocalTranslation(slideEnemy.getEnemyControl().getPhysicsLocation().add(slideEnemyBullet.mult(12f)));
-                bulletg.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
-                bulletg.addControl(new RigidBodyControl(bulletCollisionShape, 10f));
-                bulletg.getControl(RigidBodyControl.class).setCcdMotionThreshold(0.01f);
-                bulletg.getControl(RigidBodyControl.class).setLinearVelocity(slideEnemyBullet.mult(250f));
-                rootNode.attachChild(bulletg);
-                getPhysicsSpace().add(bulletg);
+            if(rootNode.getChild("slideEnemy") != null) {
+                slideEnemyBullet = slideEnemy.shoot(mat_bullet);
+                if(slideEnemyBullet != null) {
+                    // Create and move the bullet
+                    Geometry bulletg = new Geometry("bullet1", bullet);
+                    bulletg.setMaterial(mat_bullet);
+                    bulletg.setLocalTranslation(slideEnemy.getEnemyControl()
+                            .getPhysicsLocation().add(slideEnemyBullet.mult(12f)));
+                    bulletg.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
+                    bulletg.addControl(new RigidBodyControl(bulletCollisionShape, 5f));
+                    bulletg.getControl(RigidBodyControl.class).setCcdMotionThreshold(0.01f);
+                    bulletg.getControl(RigidBodyControl.class).setLinearVelocity(
+                            slideEnemyBullet.mult(50f));
+                    rootNode.attachChild(bulletg);
+                    getPhysicsSpace().add(bulletg);
+                }
             }
-
+            
+            while(!respawnQ.isEmpty()) {
+                queueString = respawnQ.poll();
+                if(rootNode.getChild("slideEnemy") == null && 
+                        queueString.equals("slideEnemy")) {
+                    slideEnemy = new SlideEnemy("slideEnemy", mat_green, playerNode);
+                    rootNode.attachChild(slideEnemy.getGeo());
+                    bulletAppState.getPhysicsSpace().add(slideEnemy.getEnemyControl());
+                    bulletAppState.getPhysicsSpace().add(slideEnemy.getGhostControl());
+                    resetSlideEnemy();
+                } else if(rootNode.getChild("hillEnemy") == null && 
+                        queueString.equals("hillEnemy")) {
+                    hillEnemy = new HillEnemy("hillEnemy", mat_blue);
+                    rootNode.attachChild(hillEnemy.getGeo());
+                    bulletAppState.getPhysicsSpace().add(hillEnemy.getEnemyControl());
+                    resetHillEnemy();
+                }
+            }
+            
             // Keep the audio listener moving with the camera
             listener.setLocation(cam.getLocation());
             listener.setRotation(cam.getRotation());
@@ -394,13 +432,13 @@ public class PlayAppState extends AbstractAppState implements
             
             if(NameB.equals("microDrone")) {
                 shockwave.explode(NodeB.getWorldTranslation());
-                bulletAppState.getPhysicsSpace().remove(e.getNodeA());
+                bulletAppState.getPhysicsSpace().remove(NodeB);
                 NodeB.removeFromParent();
                 megaDrone.removeMinion(NodeB);
                 boomSound.setLocalTranslation(NodeB.getWorldTranslation());
                 boomSound.playInstance();
                 stateManager.getState(GuiAppState.class).showHitObject(NameB, MicroDrone.points);
-            } else if (NameB.equals("megaDrone")) {
+            } else if(NameB.equals("megaDrone")) {
                  megaDrone.hit(); //decrements health but only sets flag when "dead"
                  
                 if(megaDrone.gethealth() > 0) { //hit but not dead
@@ -412,21 +450,40 @@ public class PlayAppState extends AbstractAppState implements
                     boomSound.playInstance();
                     stateManager.getState(GuiAppState.class).showHitObject(NameB, MegaDrone.killPoint);
                 }
+            } else if(NameB.equals("slideEnemy")) {
+                slideEnemy.hit();
+                shockwave.explode(NodeB.getWorldTranslation());
+                bulletAppState.getPhysicsSpace().remove(slideEnemy.getEnemyControl());
+                bulletAppState.getPhysicsSpace().remove(slideEnemy.getGhostControl());
+                NodeB.removeFromParent();
+                boomSound.setLocalTranslation(NodeB.getWorldTranslation());
+                boomSound.playInstance();
+                stateManager.getState(GuiAppState.class).showHitObject(NameB, SlideEnemy.points);
+                respawnQ.add(NameB);
+            } else if(NameB.equals("hillEnemy")) {
+                hillEnemy.hit();
+                shockwave.explode(NodeB.getWorldTranslation());
+                bulletAppState.getPhysicsSpace().remove(NodeB);
+                NodeB.removeFromParent();
+                boomSound.setLocalTranslation(NodeB.getWorldTranslation());
+                boomSound.playInstance();
+                stateManager.getState(GuiAppState.class).showHitObject(NameB, HillEnemy.points);
+                respawnQ.add(NameB);
             }
-        } else if (NameB.equals("bullet")) {
+        } else if(NameB.equals("bullet")) {
             // Remove the bullet
             bulletAppState.getPhysicsSpace().remove(NodeB);
             NodeB.removeFromParent();
             
             if(NameA.equals("microDrone")) {
                 shockwave.explode(NodeA.getWorldTranslation());
-                bulletAppState.getPhysicsSpace().remove(e.getNodeA());
+                bulletAppState.getPhysicsSpace().remove(NodeA);
                 NodeA.removeFromParent();
                 megaDrone.removeMinion(NodeA);
                 boomSound.setLocalTranslation(NodeA.getWorldTranslation());
                 boomSound.playInstance();
                 stateManager.getState(GuiAppState.class).showHitObject(NameA, MicroDrone.points);
-            } else if (NameA.equals("megaDrone")) {
+            } else if(NameA.equals("megaDrone")) {
                 megaDrone.hit(); //decrements health but only sets flag when "dead"
                 
                 if(megaDrone.gethealth() > 0) { //hit but not dead
@@ -438,21 +495,42 @@ public class PlayAppState extends AbstractAppState implements
                     boomSound.playInstance();
                     stateManager.getState(GuiAppState.class).showHitObject(NameA, MegaDrone.killPoint);
                 }
+            } else if(NameA.equals("slideEnemy")) {
+                shockwave.explode(NodeA.getWorldTranslation());
+                bulletAppState.getPhysicsSpace().remove(slideEnemy.getEnemyControl());
+                bulletAppState.getPhysicsSpace().remove(slideEnemy.getGhostControl());
+                NodeA.removeFromParent();
+                boomSound.setLocalTranslation(NodeA.getWorldTranslation());
+                boomSound.playInstance();
+                stateManager.getState(GuiAppState.class).showHitObject(NameA, SlideEnemy.points);
+                respawnQ.add(NameA);
+                System.out.println(respawnQ.size());
+            } else if(NameA.equals("hillEnemy")) {
+                hillEnemy.hit();
+                shockwave.explode(NodeA.getWorldTranslation());
+                bulletAppState.getPhysicsSpace().remove(NodeA);
+                NodeA.removeFromParent();
+                boomSound.setLocalTranslation(NodeB.getWorldTranslation());
+                boomSound.playInstance();
+                stateManager.getState(GuiAppState.class).showHitObject(NameA, HillEnemy.points);
+                respawnQ.add(NameA);
+                System.out.println(respawnQ.size());
             }
         }
         
         // Check for infiltration of the mother ship's airspace
         if(megaDrone.getGhostControl().getOverlappingObjects().contains(playerNode.getControl(CharacterControl.class))) {
             // Spawn a new drone if there is less than 4 in scene already
-            MicroDrone m = megaDrone.createMicroDrone(ball_A); // returns null if should not add new drone
+            MicroDrone m = megaDrone.createMicroDrone(mat_red); // returns null if should not add new drone
             if(m != null) {
                 // PLace the new drone between the player and the megaDrone
                 Vector3f v = playerNode.getWorldTranslation().
-                        subtract(megaDrone.getSpatial().getWorldTranslation()).normalize();
-                v.mult(20f);
-                m.getEnemyControl().setPhysicsLocation(megaDrone.getSpatial().getWorldTranslation().add(v));
-                m.getEnemyControl().getPhysicsLocation().setY(megaDrone.getEnemyControl().getPhysicsLocation().y);
-                
+                        subtract(megaDrone.getSpatial().getWorldTranslation());
+                v.setY(0).normalizeLocal();
+                v = v.mult(20f);
+                v = megaDrone.getSpatial().getWorldTranslation().add(v);
+                m.getEnemyControl().setPhysicsLocation(v);
+                                
                 // Attach the new drone to the scene and physics space
                 rootNode.attachChild(m.getGeo());
                 bulletAppState.getPhysicsSpace().add(m.getEnemyControl()); 
@@ -488,25 +566,25 @@ public class PlayAppState extends AbstractAppState implements
      */
     private void initMaterials() {
         // For a ball hit by player
-        ball_hit = new Material(
+        mat_green = new Material(
                 assetManager, "Common/MatDefs/Light/Lighting.j3md");
-        ball_hit.setBoolean("UseMaterialColors",true);
-        ball_hit.setColor("Diffuse", ColorRGBA.Green);
-        ball_hit.setColor("Ambient", new ColorRGBA(0.0f, 0.5f, 0.0f, 1.0f));
+        mat_green.setBoolean("UseMaterialColors",true);
+        mat_green.setColor("Diffuse", ColorRGBA.Green);
+        mat_green.setColor("Ambient", new ColorRGBA(0.0f, 0.5f, 0.0f, 1.0f));
         
         // For player 1
-        ball_A = new Material(
+        mat_red = new Material(
                 assetManager, "Common/MatDefs/Light/Lighting.j3md");
-        ball_A.setBoolean("UseMaterialColors",true);
-        ball_A.setColor("Diffuse", ColorRGBA.Red);
-        ball_A.setColor("Ambient", new ColorRGBA(0.5f, 0.0f, 0.0f, 1.0f));
+        mat_red.setBoolean("UseMaterialColors",true);
+        mat_red.setColor("Diffuse", ColorRGBA.Red);
+        mat_red.setColor("Ambient", new ColorRGBA(0.5f, 0.0f, 0.0f, 1.0f));
         
         // For player 2
-        ball_B = new Material(
+        mat_blue = new Material(
                 assetManager, "Common/MatDefs/Light/Lighting.j3md");
-        ball_B.setBoolean("UseMaterialColors",true);
-        ball_B.setColor("Diffuse", ColorRGBA.Blue);
-        ball_B.setColor("Ambient", new ColorRGBA(0.0f, 0.0f, 0.5f, 1.0f));
+        mat_blue.setBoolean("UseMaterialColors",true);
+        mat_blue.setColor("Diffuse", ColorRGBA.Blue);
+        mat_blue.setColor("Ambient", new ColorRGBA(0.0f, 0.0f, 0.5f, 1.0f));
         
         // For the bullets
         mat_bullet = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
@@ -581,6 +659,7 @@ public class PlayAppState extends AbstractAppState implements
             inputManager.deleteMapping("Down");
             inputManager.deleteMapping("Jump");
             inputManager.deleteMapping("shoot");
+            inputManager.deleteMapping("booster");
             inputManager.removeListener(this);
         }
     }
@@ -595,6 +674,7 @@ public class PlayAppState extends AbstractAppState implements
         
         // Clear all movement from the physics space
         bulletAppState.getPhysicsSpace().clearForces();
+        bulletAppState.getPhysicsSpace().applyGravity(); //reset effects of grav
         
         // Reset the mothership back to start location
         resetMegaDrone();

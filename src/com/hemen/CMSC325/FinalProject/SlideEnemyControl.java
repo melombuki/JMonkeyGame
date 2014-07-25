@@ -35,7 +35,7 @@ public class SlideEnemyControl extends RigidBodyControl {
         if(Math.abs(location.z) > distance) {
             speed *= -1;
         }
-        
+
         // Move it back and forth in a straight line
         g.setLocalTranslation(location.add(Vector3f.UNIT_Z.mult(speed*tpf)));
     }
