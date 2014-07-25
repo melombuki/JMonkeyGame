@@ -1,10 +1,9 @@
 //TODO: 
-// 1. Give yourself a health meter. (optional)
-// 2. Add explosion to the slideEnemy when player gets too close (optional)
+// 1. Add a bullet counter to the HUD (not optional)
+// 2. Give yourself a health meter. (optional)
+// 3. Add explosion to the slideEnemy when player gets too close (optional)
 //      |--> If not, get rid of it's ghostcontrol
-// 3. Add the hillEnemy functionality (not optional)
-// 4. Make slideEnemy and hillEnemey respawn after being shot (not optional)
-// 5. IDEA!!! create a ToRemoveQueue, and a ToAddQueue. Instead of handeling
+// 4. IDEA!!! create a ToRemoveQueue, and a ToAddQueue. Instead of handeling
 //      everything in the collision method, add the object to the queue,
 //      do what needs to be done in the update method to each elem in the queue.
 //      Can add a sounds Queue as well, full of custom sound+location objects.
