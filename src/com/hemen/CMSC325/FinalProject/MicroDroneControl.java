@@ -14,8 +14,9 @@ import com.jme3.scene.Node;
  */
 public class MicroDroneControl extends RigidBodyControl {
     private Node target;
-    private Vector3f force = new Vector3f(5f, 5f, 5f); //default value
+    private float force = 10f; //default value
     private Vector3f steering;
+    private float distance;
     
     // Will not float if no value is passed for the height
     public MicroDroneControl(CollisionShape shape, float mass, Node target) {
@@ -31,6 +32,13 @@ public class MicroDroneControl extends RigidBodyControl {
     @Override
     public void update(float tpf) {
         super.update(tpf);
+        distance = target.getWorldTranslation().distance(this.getPhysicsLocation());
+        
+        if(distance > 20) {
+            force = 10f;
+        } else {
+            force = 5f;
+        }
 
         // Update the steering influence
         steering = target.getWorldTranslation().clone();
@@ -50,7 +58,7 @@ public class MicroDroneControl extends RigidBodyControl {
     /**
      * @param impulse the impulse to set
      */
-    public void setForce(Vector3f force) {
+    public void setForce(float force) {
         this.force = force;
     }
 }
