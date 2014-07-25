@@ -96,6 +96,12 @@ public class PlayAppState extends AbstractAppState implements
     private Vector3f boost = new Vector3f(0f, 0f, 0f);
     private Vector3f slideEnemyBullet = null;
     
+    // Temp vars for collision method
+    Spatial NodeA;
+    Spatial NodeB;
+    String NameA;
+    String NameB;
+    
     // Special Effects
     private Shockwave shockwave;
     
@@ -375,34 +381,63 @@ public class PlayAppState extends AbstractAppState implements
      */
     public void collision(PhysicsCollisionEvent e) {
         // Check for collision with any microDrone and a bullet
-        Spatial NodeA = e.getNodeA();
-        Spatial NodeB = e.getNodeB();
-  
-        // Check for collision with a microDrone
-        if(NodeA.getName().equals("microDrone")) { //check NodeA
-            if(NodeB.getName().equals("bullet")) {
-                shockwave.explode(NodeA.getWorldTranslation());
+        NodeA = e.getNodeA();
+        NodeB = e.getNodeB();
+        NameA = NodeA.getName();
+        NameB = NodeB.getName();
+        
+        // Check for a collision with a bullet
+        if(NameA.equals("bullet")) {
+            // Remove the bullet
+            bulletAppState.getPhysicsSpace().remove(NodeA);
+            NodeA.removeFromParent();
+            
+            if(NameB.equals("microDrone")) {
+                shockwave.explode(NodeB.getWorldTranslation());
                 bulletAppState.getPhysicsSpace().remove(e.getNodeA());
-                e.getNodeA().removeFromParent();
-                megaDrone.removeMinion(NodeA);
-                boomSound.setLocalTranslation(NodeA.getWorldTranslation());
-                boomSound.playInstance();
-                stateManager.getState(GuiAppState.class).showHitObject(NodeA.getName(), MicroDrone.points);
-            } else if(NodeB.getName().equals("player")) {
-                 //TODO: make the player move or mess up the controls a bit or score
-
-            }
-        } else if(NodeB.getName().equals("microDrone")) {  //check NodeB
-            if(NodeA.getName().equals("bullet")) {
-                shockwave.explode(NodeA.getWorldTranslation());
-                bulletAppState.getPhysicsSpace().remove(e.getNodeB());
-                e.getNodeB().removeFromParent();
+                NodeB.removeFromParent();
                 megaDrone.removeMinion(NodeB);
                 boomSound.setLocalTranslation(NodeB.getWorldTranslation());
                 boomSound.playInstance();
-                stateManager.getState(GuiAppState.class).showHitObject(NodeB.getName(), MicroDrone.points);
-            } else if (NodeA.getName().equals("player")) {
-                 //TODO: make the player move or mess up the controls a bit or score
+                stateManager.getState(GuiAppState.class).showHitObject(NameB, MicroDrone.points);
+            } else if (NameB.equals("megaDrone")) {
+                 megaDrone.hit(); //decrements health but only sets flag when "dead"
+                 
+                if(megaDrone.gethealth() > 0) { //hit but not dead
+                    megaDroneHitSound.setLocalTranslation(megaDrone.getSpatial().getWorldTranslation());
+                    megaDroneHitSound.playInstance();
+                    stateManager.getState(GuiAppState.class).showHitObject(NameB, MegaDrone.hitPoint);
+                } else { //hit and dead
+                    boomSound.setLocalTranslation(megaDrone.getSpatial().getWorldTranslation());
+                    boomSound.playInstance();
+                    stateManager.getState(GuiAppState.class).showHitObject(NameB, MegaDrone.killPoint);
+                }
+            }
+        } else if (NameB.equals("bullet")) {
+            // Remove the bullet
+            bulletAppState.getPhysicsSpace().remove(NodeB);
+            NodeB.removeFromParent();
+            
+            if(NameA.equals("microDrone")) {
+                shockwave.explode(NodeA.getWorldTranslation());
+                bulletAppState.getPhysicsSpace().remove(e.getNodeA());
+                NodeA.removeFromParent();
+                megaDrone.removeMinion(NodeA);
+                boomSound.setLocalTranslation(NodeA.getWorldTranslation());
+                boomSound.playInstance();
+                stateManager.getState(GuiAppState.class).showHitObject(NameA, MicroDrone.points);
+            } else if (NameA.equals("megaDrone")) {
+                megaDrone.hit(); //decrements health but only sets flag when "dead"
+                
+                if(megaDrone.gethealth() > 0) { //hit but not dead
+                    megaDroneHitSound.setLocalTranslation(megaDrone.getSpatial().getWorldTranslation());
+                    megaDroneHitSound.playInstance();
+                    stateManager.getState(GuiAppState.class).showHitObject(NameA, MegaDrone.hitPoint);
+                } else { //hit and dead
+                    boomSound.setLocalTranslation(megaDrone.getSpatial().getWorldTranslation());
+                    boomSound.playInstance();
+                    stateManager.getState(GuiAppState.class).showHitObject(NameA, MegaDrone.killPoint);
+                }
             }
         }
         
@@ -424,38 +459,12 @@ public class PlayAppState extends AbstractAppState implements
             }
         }
         
-        // Check for bullet hitting megaDrone
-        if(NodeA.getName().equals("megaDrone") && NodeB.getName().equals("bullet")) {
-            megaDrone.hit();
-            if(megaDrone.gethealth() > 0) { //hit but not dead
-                megaDroneHitSound.setLocalTranslation(megaDrone.getSpatial().getWorldTranslation());
-                megaDroneHitSound.playInstance();
-                stateManager.getState(GuiAppState.class).showHitObject(NodeA.getName(), MegaDrone.hitPoint);
-            } else { //hit and dead
-                boomSound.setLocalTranslation(megaDrone.getSpatial().getWorldTranslation());
-                boomSound.playInstance();
-                stateManager.getState(GuiAppState.class).showHitObject(NodeA.getName(), MegaDrone.killPoint);
-            }
-            
-        } else if(NodeB.getName().equals("megaDrone") && NodeA.getName().equals("bullet")) {
-            megaDrone.hit();
-            if(megaDrone.gethealth() > 0) { //hit but not dead
-                megaDroneHitSound.setLocalTranslation(megaDrone.getSpatial().getWorldTranslation());
-                megaDroneHitSound.playInstance();
-                stateManager.getState(GuiAppState.class).showHitObject(NodeA.getName(), MegaDrone.hitPoint);
-            } else { //hit and dead
-                boomSound.setLocalTranslation(megaDrone.getSpatial().getWorldTranslation());
-                boomSound.playInstance();
-                stateManager.getState(GuiAppState.class).showHitObject(NodeA.getName(), MegaDrone.killPoint);
-            }
-        }
-        
-        // Remove the bullet physics control from the world
-        if(NodeA.getName().equals("bullet") || NodeA.getName().equals("bullet1")) {
-            bulletAppState.getPhysicsSpace().remove(e.getNodeA());
+        // Remove bullet1 physics control from the world
+        if(NameA.equals("bullet1")) {
+            bulletAppState.getPhysicsSpace().remove(NodeA);
             NodeA.removeFromParent();
-        } else if(NodeB.getName().equals("bullet") || NodeB.getName().equals("bullet1")) {
-            bulletAppState.getPhysicsSpace().remove(e.getNodeB());
+        } else if(NameB.equals("bullet1")) {
+            bulletAppState.getPhysicsSpace().remove(NodeB);
             NodeB.removeFromParent();       
         }
     }
@@ -534,7 +543,7 @@ public class PlayAppState extends AbstractAppState implements
             //don't just use cam.getLocation. bullets will not work when back is on a wall
             bulletg.setLocalTranslation(playerNode.getWorldTranslation().add(0, 6f, 0));
             bulletg.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
-            bulletg.addControl(new RigidBodyControl(bulletCollisionShape, 0.25f));
+            bulletg.addControl(new RigidBodyControl(bulletCollisionShape, 0.1f));
             bulletg.getControl(RigidBodyControl.class).setCcdMotionThreshold(0.01f);
             bulletg.getControl(RigidBodyControl.class).setLinearVelocity(cam.getDirection().mult(500));
             rootNode.attachChild(bulletg);
