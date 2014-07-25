@@ -51,10 +51,11 @@
         <!-- -->
         <layer id="forground" childLayout="vertical" align="center">
             <panel id="stats_panel" childLayout="horizontal" height="6%" width="100%">
-                <text id="currentRound" text="Current Round: " font="Interface/Fonts/Arial.fnt" color="#00ff" width="12.5%" height="100%" textHAlign="left" />
-                <text id="totalPoints" text="Total Score: 0" font="Interface/Fonts/Arial.fnt" color="#00ff" width="12.5%" height="100%" />
-                <text id="hitObject" text="" font="Interface/Fonts/Arial.fnt" color="#00ff" width="50%" height="100%" />
-                <text id="timer" text="" font="Interface/Fonts/Arial.fnt" color="#00ff" width="25%" height="100%" textHAlign="right" />
+                <text id="currentRound" text="Current Round: " font="Interface/Fonts/Arial.fnt" color="#00ff" width="10%" height="100%" textHAlign="left" />
+                <text id="totalPoints" text="Total Score: 0" font="Interface/Fonts/Arial.fnt" color="#00ff" width="15%" height="100%" textHAlign="left" />
+                <text id="hitObject" text="" font="Interface/Fonts/Arial.fnt" color="#00ff" width="45%" height="100%" />
+                <text id="roundsFired" text="" font="Interface/Fonts/Arial.fnt" color="#00ff" width="15%" height="100%" />
+                <text id="timer" text="" font="Interface/Fonts/Arial.fnt" color="#00ff" width="15%" height="100%" textHAlign="right" />
             </panel>
             <panel id="blank" childLayout="horizontal" height="94%" width="100%">
                 <!-- Takes up the rest of the vertical space of this layer. -->

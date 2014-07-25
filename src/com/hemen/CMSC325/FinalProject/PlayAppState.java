@@ -1,12 +1,8 @@
 //TODO: 
-// 1. Add a bullet counter to the HUD (not optional)
-// 2. Give yourself a health meter. (optional)
-// 3. Add explosion to the slideEnemy when player gets too close (optional)
+// 1. Give yourself a health meter. (optional)
+// 2. Add explosion to the slideEnemy when player gets too close (optional)
 //      |--> If not, get rid of it's ghostcontrol
-// 4. IDEA!!! create a ToRemoveQueue, and a ToAddQueue. Instead of handeling
-//      everything in the collision method, add the object to the queue,
-//      do what needs to be done in the update method to each elem in the queue.
-//      Can add a sounds Queue as well, full of custom sound+location objects.
+
 
 package com.hemen.CMSC325.FinalProject;
 
@@ -408,10 +404,6 @@ public class PlayAppState extends AbstractAppState implements
         }
     }
 
-    //TODO: Clean this method up. First check for a bullet collision, then
-    //      if/else if for the second object involved and handle them there.
-    //      this should cut down on the number of checks required to be made.
-    //      Still need the mothership's airspace in a separate if though.
     /*
      * This method handles what to do when a collision occurs. It turns a ball
      * green if it has not been hit yet.
@@ -607,6 +599,8 @@ public class PlayAppState extends AbstractAppState implements
         } else if (binding.equals("Jump")) {
           player.jump();
         } else if (binding.equals("shoot") && value) {
+            // Increment counter of rounds fired for the GUI HUD
+            stateManager.getState(GuiAppState.class).addRound();
             // Play the gun firing sound
             shotSound.setLocalTranslation(player.getPhysicsLocation());
             shotSound.playInstance();

@@ -61,6 +61,7 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
     private int                totalPointsEnd = 0;
     private String[]           scores;
     private String             initials = "unk";
+    private Integer            roundsFired = 0;
     
     public GuiAppState() {}
     
@@ -95,7 +96,7 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
     public void update(float tpf) {
         // Update a timer within the hud with time from start of screen and hanle
         // 5 minute time limit
-        if(nifty.getCurrentScreen().getScreenId().equals("hud")) {
+        if(nifty.getCurrentScreen().getScreenId().equals("hud")) { 
             // End the round or game at 5 minutes
             if(timer.getTimeInSeconds() - startMark > timeLimit) { //5 minute limit
                 if(stateManager.getState(PlayAppState.class).getCurrentRound() == 
@@ -114,6 +115,11 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
             if(timer.getTimeInSeconds() - hitMark > 2) {
                 nifty.getCurrentScreen().findElementByName("hitObject").getRenderer(
                     TextRenderer.class).setText("");
+                
+            //Update the total number of rounds fired
+            nifty.getCurrentScreen().findElementByName(
+                "roundsFired").getRenderer(TextRenderer.class)
+                    .setText("Shots: " + roundsFired.toString());
             }
         }
     }
@@ -183,6 +189,7 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
 
     public void onStartScreen() {
         Integer totalPoints;
+        roundsFired = 0;
         
         if(nifty.getCurrentScreen().getScreenId().equals("hud")) {
             // Set the current player in top corner
@@ -193,6 +200,10 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
             // Clear the object hit line if not already cleared.
             nifty.getCurrentScreen().findElementByName(
                     "hitObject").getRenderer(TextRenderer.class).setText("");
+            
+            // Clear the number of rounds counter
+            nifty.getCurrentScreen().findElementByName(
+                    "roundsFired").getRenderer(TextRenderer.class).setText("Shots: 0");
             
             // Get the current total score
             totalPoints = stateManager.getState(PlayAppState.class).getTotalPoints();
@@ -459,5 +470,13 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
      */
     private boolean isValid(String initials) {
         return initials.matches("[a-zA-Z]{3}");
+    }
+
+    /*
+     * This method adds a round to the total round counter, roundsFired.
+     * @param roundsFired the roundsFired to set
+     */
+    public void addRound() {
+        roundsFired++;
     }
 }
