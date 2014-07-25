@@ -4,6 +4,7 @@ package com.hemen.CMSC325.FinalProject;
  * This is a very basic enemy that can be hit and unhit. I might want to add
  * a field for health and point value but I don't want to change the whole game
  * jsut yet.
+ * 
  * @author Joshua P. Hemen
  */
 public abstract class Enemy {

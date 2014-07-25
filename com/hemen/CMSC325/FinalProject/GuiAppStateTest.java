@@ -16,8 +16,9 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 /**
- *
- * @author melombuki
+ * This class contains the guiAppState tests.
+ * 
+ * @author Joshua P. Hemen
  */
 public class GuiAppStateTest {
     

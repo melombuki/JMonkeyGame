@@ -11,8 +11,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- *
- * @author melombuki
+ * This class creates the big bad Boss of the game. It has a large health bar,
+ * and spits out up to 4 little drones that are faster to track down the player.
+ * 
+ * @author Joshua P. Hemen
  */
 public class MegaDrone extends Enemy {
     private final static int MAX_MINIONS = 3;

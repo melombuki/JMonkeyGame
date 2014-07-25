@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.hemen.CMSC325.FinalProject;
 
 import org.junit.After;
@@ -12,8 +8,9 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 /**
- *
- * @author melombuki
+ * This class launches the final project in all its 8 week old glory!
+ * 
+ * @author Joshua P. Hemen
  */
 public class EnemyTest {
     

@@ -1,3 +1,8 @@
+//TODO:
+// 1. Find a way to make this part faster. IDEA: Move all updates of the same
+//  screen into one text element in the start.xml file. Create a single formatted
+//  String with all updated info, then it is only one call to change the text.
+
 package com.hemen.CMSC325.FinalProject;
 
 import com.jme3.app.Application;
@@ -474,7 +479,6 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
 
     /*
      * This method adds a round to the total round counter, roundsFired.
-     * @param roundsFired the roundsFired to set
      */
     public void addRound() {
         roundsFired++;

@@ -10,6 +10,7 @@ import java.util.Random;
  * in the X and Y components of it's location. It can still roll around and
  * follow the terrain as long as there are no hills that are too big for it to
  * roll over.
+ * 
  * @author Joshua P. Hemen
  */
 public class HillEnemyControl extends RigidBodyControl {

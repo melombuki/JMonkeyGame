@@ -55,6 +55,7 @@ import java.util.Queue;
  * gameplay. It loads three balls and alternates between player 1 and 2 for 2
  * consecutive turns each. A cycle is considered one complete turn for all players
  * selected. A round is one player's turn.
+ * 
  * @author Joshua P. Hemen
  */
 public class PlayAppState extends AbstractAppState implements 
