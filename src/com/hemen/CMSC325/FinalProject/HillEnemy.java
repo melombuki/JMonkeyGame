@@ -6,8 +6,10 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.PQTorus;
 
 /**
- *
- * @author melombuki
+ * This class creates a very strange enemy that is in the shape of a spiral PQ
+ * torus that moves with random Gaussian motion applied to the X and Z components. 
+ * This class is meant to be very basic.
+ * @author Joshua P. Hemen
  */
 public class HillEnemy extends Enemy {
     private PQTorus s;

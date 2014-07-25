@@ -151,7 +151,7 @@ public class PlayAppState extends AbstractAppState implements
         // Get the physics app state
         bulletAppState = stateManager.getState(BulletAppState.class);
         bulletAppState.setEnabled(false);
-        bulletAppState.getPhysicsSpace().enableDebug(assetManager);
+        //bulletAppState.getPhysicsSpace().enableDebug(assetManager);
 
         // Set up the bullet object
         bullet = new Sphere(32, 32, 0.2f, true, false);
@@ -504,7 +504,6 @@ public class PlayAppState extends AbstractAppState implements
                 boomSound.playInstance();
                 stateManager.getState(GuiAppState.class).showHitObject(NameA, SlideEnemy.points);
                 respawnQ.add(NameA);
-                System.out.println(respawnQ.size());
             } else if(NameA.equals("hillEnemy")) {
                 hillEnemy.hit();
                 shockwave.explode(NodeA.getWorldTranslation());
@@ -514,7 +513,6 @@ public class PlayAppState extends AbstractAppState implements
                 boomSound.playInstance();
                 stateManager.getState(GuiAppState.class).showHitObject(NameA, HillEnemy.points);
                 respawnQ.add(NameA);
-                System.out.println(respawnQ.size());
             }
         }
         
