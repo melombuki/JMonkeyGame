@@ -15,7 +15,7 @@ import com.jme3.scene.Node;
  */
 public class MegaDroneControl extends RigidBodyControl {
     private Node target;
-    private Vector3f impulse = new Vector3f(0.15f, 0f, 0.15f); //default value
+    private Vector3f impulse = new Vector3f(0.15f, 0f, 0.15f); //moves very slow
     private Vector3f steering;
     private Vector3f direction;
     private Quaternion rot = new Quaternion();
@@ -48,18 +48,18 @@ public class MegaDroneControl extends RigidBodyControl {
                            Vector3f.UNIT_Y,
                            Vector3f.UNIT_Y.cross(direction).normalize()));
     }
-    
-    /*
-     * @return the "speed" of the object.
-     */
-    public float getSpeed() {
-        return getLinearVelocity().length();
-    }
+//    // Not used for anything yet.
+//    /*
+//     * @return the "speed" of the object.
+//     */
+//    public float getSpeed() {
+//        return getLinearVelocity().length();
+//    }
 
-    /**
-     * @param impulse the impulse to set
-     */
-    public void setImpulse(Vector3f impulse) {
-        this.impulse = impulse;
-    }
+//    /**
+//     * @param impulse the impulse to set
+//     */
+//    public void setImpulse(Vector3f impulse) {
+//        this.impulse = impulse;
+//    }
 }

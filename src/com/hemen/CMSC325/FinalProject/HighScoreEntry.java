@@ -18,9 +18,10 @@ public class HighScoreEntry implements Comparable<HighScoreEntry> {
     
     public String getInitials() {return initials;}
 
+    @Override
     public int compareTo(HighScoreEntry o) {
-        if(score > o.getScore()) {return -1;}
-        else if (score == o.getScore()) {return 0;}
+        if((int)score > (int)o.getScore()) {return -1;}
+        else if ((int)score == (int)o.getScore()) {return 0;}
         else return 1;
     }
 }

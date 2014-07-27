@@ -1,6 +1,5 @@
 package com.hemen.CMSC325.FinalProject;
 
-import com.jme3.asset.AssetManager;
 import com.jme3.bullet.collision.shapes.SphereCollisionShape;
 import com.jme3.bullet.control.GhostControl;
 import com.jme3.bullet.control.RigidBodyControl;
@@ -32,11 +31,11 @@ public class MegaDrone extends Enemy {
     private Set<MicroDrone> minions;
   
     
-    public MegaDrone(String name, Material mat, Node target, AssetManager assetManager) {
-        s =  assetManager.loadModel("Models/Mothership/Mothership.j3o");
-        s.setLocalTranslation(0f, -1f, 0f);
-        s.setLocalScale(6f);
-        s.setName(name);
+    public MegaDrone(String name, Material mat, Node target, Spatial s) {
+        this.s =  s;
+        this.s.setLocalTranslation(0f, -1f, 0f);
+        this.s.setLocalScale(6f);
+        this.s.setName(name);
         
         // Store handle to the target to pass to minions
         this.target = target;
@@ -68,10 +67,11 @@ public class MegaDrone extends Enemy {
                 getMinions().size() <= MAX_MINIONS) {
             lastSpawnTime = System.currentTimeMillis();
             MicroDrone m = new MicroDrone("microDrone", mat, target);
-            getMinions().add(m);
+            minions.add(m);
             return m;
+        } else {
+            return null; // no minion was added to the scene
         }
-        return null; // no minion was added to the scene
     }
 
     public int gethealth() {return health;}
@@ -98,9 +98,7 @@ public class MegaDrone extends Enemy {
     public boolean removeMinion(Spatial m) {
         for(MicroDrone md : minions) {
             if(md.getGeo().hashCode() == m.hashCode()) {
-                if(minions.remove(md)) {
-                    return false;
-                }
+                return minions.remove(md);
             }
         }
         return false;

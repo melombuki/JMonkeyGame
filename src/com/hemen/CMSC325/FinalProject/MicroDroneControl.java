@@ -43,18 +43,18 @@ public class MicroDroneControl extends RigidBodyControl {
         // Actually move the object towards the target
         applyCentralForce(steering.mult(force));
     }
-    
-    /*
-     * @return the "speed" of the object.
-     */
-    public float getSpeed() {
-        return getLinearVelocity().length();
-    }
-
-    /**
-     * @param impulse the impulse to set
-     */
-    public void setForce(float force) {
-        this.force = force;
-    }
+//    //Not used for anything yet
+//    /*
+//     * @return the "speed" of the object.
+//     */
+//    public float getSpeed() {
+//        return getLinearVelocity().length();
+//    }
+//
+//    /**
+//     * @param force the amount that the steering will by multiplied by
+//     */
+//    public void setForce(float force) {
+//        this.force = force;
+//    }
 }

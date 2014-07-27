@@ -228,7 +228,8 @@ public class PlayAppState extends AbstractAppState implements
         chaseCam.setInvertVerticalAxis(true);
 
         // Init the mothership and make the sensor field only collide with the player
-        megaDrone = new MegaDrone("megaDrone", mat_blue, playerNode, assetManager);
+        megaDrone = new MegaDrone("megaDrone", mat_blue, playerNode,
+                assetManager.loadModel("Models/Mothership/Mothership.j3o"));
         // Only allow the ghost control to collide with the player
         megaDrone.getGhostControl().setCollisionGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
         megaDrone.getGhostControl().setCollideWithGroups(PhysicsCollisionObject.COLLISION_GROUP_02);

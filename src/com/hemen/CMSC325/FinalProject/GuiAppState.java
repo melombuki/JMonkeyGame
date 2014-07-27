@@ -66,7 +66,7 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
     private int                totalPointsEnd = 0;
     private String[]           scores;
     private String             initials = "unk";
-    private Integer            roundsFired = 0;
+    private Integer            roundsFired = Integer.valueOf(0);
     
     public GuiAppState() {}
     
@@ -163,6 +163,7 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
         
         // Verify valid user input
         if(!isValid(initials)) return; //do nothing if not valid input
+        initials = initials.toUpperCase();
         
         // Start the timer since start of game
         startMark = timer.getTimeInSeconds();
@@ -473,7 +474,7 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
      * This method returns true if the user has properly entered their initials,
      * and false if not.
      */
-    private boolean isValid(String initials) {
+    public boolean isValid(String initials) {
         return initials.matches("[a-zA-Z]{3}");
     }
 
@@ -482,5 +483,13 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
      */
     public void addRound() {
         roundsFired++;
+    }
+    
+    /*
+     * This method returns the current number of rounds fired. It is only used
+     * for testing.
+     */
+    public int getRounds() {
+        return roundsFired;
     }
 }
