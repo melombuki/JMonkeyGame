@@ -9,7 +9,7 @@
         </layer>
         <layer id="foreground" childLayout="vertical">
             <panel id="panel_title" height="12.5%" width="75%" align="center" childLayout="center">  
-                <text text="Hemen's Killer Game (a.k.a. Project 1)" font="Interface/Fonts/Arial.fnt" color="#00ff" width="100%" height="100%" />
+                <text text="Hemen's Killer Game (a.k.a. The Final Project)" font="Interface/Fonts/Arial.fnt" color="#00ff" width="100%" height="100%" />
             </panel>
             <panel id="panel_input" height="25%" width="25%" align="center" valign="center" childLayout="vertical">
                 <panel childLayout="horizontal">
@@ -22,7 +22,8 @@
                 </panel>
             </panel>
             <panel id="panel_mid_bottom" height="50%" width="75%" align="center" childLayout="vertical">  
-                <text text="In this game you must shoot or touch all of the floating red (player 1) or blue (player 2) balls in order to complete your turn of the game. Once touched, the ball will turn green. There are two players and turns alternate back and forth. Once one player has hit all balls in the scene, the next set of balls will appear for player 2. Click the 'Start' button to start or the 'Quit' button to exit the game." font="Interface/Fonts/Arial.fnt" color="#00ff" width="100%" height="80%" wrap="true" />              
+                <text text="You are on a mission on the planet SunakSunakLa that is inhabited by a hostile robotic army of consisting different geometric shapes. You evil robots have found you while on a supply run in your hover jet. You must destroy the evil mother ship also known as a Mega Drone. Beware of the micro drones that will attempt to capture you and prevent you from moving." font="Interface/Fonts/Arial.fnt" color="#00ff" width="100%" height="80%" wrap="true" /> 
+                 <text text="Move with WASD and look around with the mouse. Shoot by left clicking. Press the E key to activate a short hyperdrive burst, but the space in front of you must be mostly clear for it to work." font="Interface/Fonts/Arial.fnt" color="#00ff" width="100%" height="20%" wrap="true" />               
             </panel>
             <panel id="panel_bottom" height="12.5%" width="75%" align="center" childLayout="horizontal">
                 <panel id="StartPanel" height="100%" width="50%" align="center" childLayout="center">
