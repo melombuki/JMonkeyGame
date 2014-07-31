@@ -11,7 +11,6 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.asset.AssetManager;
-import com.jme3.asset.TextureKey;
 import com.jme3.audio.AudioNode;
 import com.jme3.audio.Listener;
 import com.jme3.bullet.BulletAppState;
@@ -88,6 +87,8 @@ public class PlayAppState extends AbstractAppState implements
     private AmbientLight al;
     private DirectionalLight dl;
     private Quaternion hoverJetQ; //rotation of the hover jet
+//    private Quaternion yaw90 = 
+//            new Quaternion(0f, 1f, 0f, 1f); //90 rotation to the right
     private boolean isRoundOver = false;
     
     //Testing
@@ -205,14 +206,10 @@ public class PlayAppState extends AbstractAppState implements
         rootNode.attachChild(megaDroneHitSound);
         
         // Set up the hover Jet
-        Spatial hoverJet = assetManager.loadModel("Models/FighterBomber.mesh.xml");
-        Material mat_hj = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
-
-        mat_hj.setTexture("LightMap", assetManager.loadTexture(
-                new TextureKey("Models/FighterBomber.png", false)));
-        hoverJet.setMaterial(mat_hj);
+        Spatial hoverJet = assetManager.loadModel("Models/femaleModelBody271R90Z/femaleModelBody271R90Z.j3o");
+        hoverJet.setLocalScale(0.25f);
         hoverJet.setName("hoverJet");
-        hoverJetQ = Quaternion.IDENTITY;
+        hoverJetQ = new Quaternion();
         playerNode.attachChild(hoverJet);
 
         // Set up the camera bits

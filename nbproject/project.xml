@@ -13,6 +13,7 @@
         </buildExtensions>
         <data xmlns="http://www.netbeans.org/ns/j2se-project/3">
             <name>HemenFinalProject</name>
+            <explicit-platform explicit-source-supported="true"/>
             <source-roots>
                 <root id="src.assets.dir"/>
                 <root id="src.dir"/>
