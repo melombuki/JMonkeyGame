@@ -1,4 +1,4 @@
-//TODO: 
+//TODO: Stuff
 // 1. Give yourself a health meter. (optional)
 // 2. Add explosion to the slideEnemy when player gets too close (optional)
 //      |--> If not, get rid of it's ghostcontrol
@@ -18,9 +18,9 @@ import com.jme3.bullet.PhysicsSpace;
 import com.jme3.bullet.collision.PhysicsCollisionEvent;
 import com.jme3.bullet.collision.PhysicsCollisionListener;
 import com.jme3.bullet.collision.PhysicsCollisionObject;
-import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
 import com.jme3.bullet.collision.shapes.SphereCollisionShape;
-import com.jme3.bullet.control.CharacterControl;
+import com.jme3.bullet.control.BetterCharacterControl;
+import com.jme3.bullet.control.GhostControl;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
@@ -37,7 +37,6 @@ import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
-import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.queue.RenderQueue;
@@ -75,7 +74,9 @@ public class PlayAppState extends AbstractAppState implements
     private Spatial sceneModel;
     private BulletAppState bulletAppState;
     private Node playerNode; //wraps player CharacterControl with a name
-    private CharacterControl player;
+    private Spatial FemaleChar;
+    private BetterCharacterControl player;
+    private GhostControl playerGhost;
     private boolean left = false, right = false, up = false, down = false;
     private MegaDrone megaDrone;
     private SlideEnemy slideEnemy;
@@ -86,9 +87,6 @@ public class PlayAppState extends AbstractAppState implements
     private int currentRound = 1;
     private AmbientLight al;
     private DirectionalLight dl;
-    private Quaternion hoverJetQ; //rotation of the hover jet
-//    private Quaternion yaw90 = 
-//            new Quaternion(0f, 1f, 0f, 1f); //90 rotation to the right
     private boolean isRoundOver = false;
     
     //Testing
@@ -97,9 +95,7 @@ public class PlayAppState extends AbstractAppState implements
 
     // Temporary vectors used on each frame.
     // They here to avoid instanciating new vectors on each frame
-    private Vector3f camDir = new Vector3f();
-    private Vector3f camLeft = new Vector3f();
-    private Vector3f walkDirection = new Vector3f();
+    private Vector3f walkDirection = new Vector3f(0f, 0f, 0f);
     private Vector3f boost = new Vector3f(0f, 0f, 0f);
     private Vector3f slideEnemyBullet = null;
     
@@ -148,7 +144,7 @@ public class PlayAppState extends AbstractAppState implements
         // Get the physics app state
         bulletAppState = stateManager.getState(BulletAppState.class);
         bulletAppState.setEnabled(false);
-        //bulletAppState.getPhysicsSpace().enableDebug(assetManager);
+        bulletAppState.getPhysicsSpace().enableDebug(assetManager);
 
         // Set up the bullet object
         bullet = new Sphere(32, 32, 0.2f, true, false);
@@ -181,15 +177,11 @@ public class PlayAppState extends AbstractAppState implements
         // a capsule collision shape and a CharacterControl.
         // We also put the player in its starting position.
         playerNode = new Node("player");
-        CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(1.5f, 3f, 1);
-        player = new CharacterControl(capsuleShape, 0.05f);
+        player = new BetterCharacterControl(1.5f, 3f, 8f); 
         player.setViewDirection(new Vector3f(1, 0, 0));
-        player.addCollideWithGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
-        player.setJumpSpeed(20);
-        player.setFallSpeed(30);
-        player.setGravity(30);
+        player.setJumpForce(new Vector3f(0f, 20f, 0f));
         playerNode.addControl(player);
-        
+              
         listener.setVolume(0); //mute
         
         // Set up the shooting audio
@@ -206,15 +198,17 @@ public class PlayAppState extends AbstractAppState implements
         rootNode.attachChild(megaDroneHitSound);
         
         // Set up the hover Jet
-        Spatial hoverJet = assetManager.loadModel("Models/femaleModelBody271R90Z/femaleModelBody271R90Z.j3o");
-        hoverJet.setLocalScale(0.25f);
-        hoverJet.setName("hoverJet");
-        hoverJetQ = new Quaternion();
-        playerNode.attachChild(hoverJet);
+        FemaleChar = assetManager.loadModel("Models/femaleModelBody271/femaleModelBody271.j3o");
+        FemaleChar.setLocalScale(0.25f);
+        FemaleChar.setName("FemaleChar");
+        playerGhost = new GhostControl(new SphereCollisionShape(2f));
+        playerGhost.addCollideWithGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
+        FemaleChar.addControl(playerGhost);
+        playerNode.attachChild(FemaleChar);
 
         // Set up the camera bits
         flyCam.setEnabled(false);
-        chaseCam = new ChaseCamera(cam, playerNode, inputManager);
+        chaseCam = new ChaseCamera(cam, FemaleChar, inputManager);
         chaseCam.setDefaultHorizontalRotation(FastMath.QUARTER_PI * 3f);
         chaseCam.setSmoothMotion(false);
         chaseCam.setLookAtOffset(new Vector3f(0, 6f, 0));
@@ -225,7 +219,7 @@ public class PlayAppState extends AbstractAppState implements
         chaseCam.setInvertVerticalAxis(true);
 
         // Init the mothership and make the sensor field only collide with the player
-        megaDrone = new MegaDrone("megaDrone", mat_blue, playerNode,
+        megaDrone = new MegaDrone("megaDrone", mat_blue, FemaleChar,
                 assetManager.loadModel("Models/Mothership/Mothership.j3o"));
         // Only allow the ghost control to collide with the player
         megaDrone.getGhostControl().setCollisionGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
@@ -233,7 +227,7 @@ public class PlayAppState extends AbstractAppState implements
         
         // Init the simple slide enemy and hill enemy
         hillEnemy = new HillEnemy("hillEnemy", mat_blue);
-        slideEnemy = new SlideEnemy("slideEnemy", mat_green, playerNode);
+        slideEnemy = new SlideEnemy("slideEnemy", mat_green, FemaleChar);
         // Only allow the ghost control to collide with the player
         slideEnemy.getGhostControl().setCollisionGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
         slideEnemy.getGhostControl().setCollideWithGroups(PhysicsCollisionObject.COLLISION_GROUP_02); 
@@ -261,34 +255,29 @@ public class PlayAppState extends AbstractAppState implements
                 else {roundOver();} // Just the end the current round
             }
 
-            // Handle player movement (the user's character)
-            camDir = cam.getDirection().multLocal(0.6f); // The use of multLocal here is to control the rate of movement multiplier for character walk speed.
-            camLeft = cam.getLeft().multLocal(0.4f);
-            walkDirection.set(boost);
-            boost.set(0f, 0f, 0f); //reset the booster
+            Vector3f modelForwardDir = playerNode.getWorldRotation().mult(Vector3f.UNIT_Z);
+            Vector3f modelLeftDir = playerNode.getWorldRotation().mult(Vector3f.UNIT_X);
+
+            // WalkDirection is global!
+            // You *can* make your character fly with this.
+            walkDirection.set(0, 0, 0);
             if (left) {
-                walkDirection.addLocal(camLeft);
-            }
-            if (right) {
-                walkDirection.addLocal(camLeft.negate());
+                walkDirection.addLocal(modelLeftDir.mult(15));
+            } else if (right) {
+                walkDirection.addLocal(modelLeftDir.negate().multLocal(15));
             }
             if (up) {
-                walkDirection.addLocal(camDir);
-            }
-            if (down) {
-                walkDirection.addLocal(camDir.negate());
+                walkDirection.addLocal(modelForwardDir.mult(15));
+            } else if (down) {
+                walkDirection.addLocal(modelForwardDir.negate().multLocal(15));
             }
             player.setWalkDirection(walkDirection);
-
-            // Slowly adjust the hoverJet to match camera direction
-            Spatial hJ = rootNode.getChild("hoverJet");
-            float angles[] = new float[3];
-            if(hJ != null) {
-                hoverJetQ.slerp(cam.getRotation(), 0.025f);
-                hoverJetQ.toAngles(angles);
-                hoverJetQ.fromAngleAxis(angles[1], Vector3f.UNIT_Y).normalizeLocal();
-                hJ.setLocalRotation(hoverJetQ);
-            }
+            
+            // ViewDirection is local to characters physics system!
+            // The final world rotation depends on the gravity and on the state of
+            // setApplyPhysicsLocal()
+            player.setViewDirection(player.getViewDirection().interpolate(
+                    cam.getDirection(), 0.05f));
 
             // Attempt to have slideEnemy shoot
             if(rootNode.getChild("slideEnemy") != null) {
@@ -313,7 +302,7 @@ public class PlayAppState extends AbstractAppState implements
                 queueString = respawnQ.poll();
                 if(rootNode.getChild("slideEnemy") == null && 
                         queueString.equals("slideEnemy")) {
-                    slideEnemy = new SlideEnemy("slideEnemy", mat_green, playerNode);
+                    slideEnemy = new SlideEnemy("slideEnemy", mat_green, FemaleChar);
                     rootNode.attachChild(slideEnemy.getGeo());
                     bulletAppState.getPhysicsSpace().add(slideEnemy.getEnemyControl());
                     bulletAppState.getPhysicsSpace().add(slideEnemy.getGhostControl());
@@ -376,6 +365,7 @@ public class PlayAppState extends AbstractAppState implements
             // Add everything to the physics space
             bulletAppState.getPhysicsSpace().addAll(sceneModel);
             bulletAppState.getPhysicsSpace().add(player);
+            bulletAppState.getPhysicsSpace().addAll(FemaleChar);
             bulletAppState.getPhysicsSpace().add(megaDrone.getEnemyControl());
             bulletAppState.getPhysicsSpace().add(megaDrone.getGhostControl());
             bulletAppState.getPhysicsSpace().add(slideEnemy.getEnemyControl());
@@ -507,12 +497,12 @@ public class PlayAppState extends AbstractAppState implements
         }
         
         // Check for infiltration of the mother ship's airspace
-        if(megaDrone.getGhostControl().getOverlappingObjects().contains(playerNode.getControl(CharacterControl.class))) {
+        if(megaDrone.getGhostControl().getOverlappingObjects().contains(FemaleChar.getControl(GhostControl.class))) {
             // Spawn a new drone if there is less than 4 in scene already
             MicroDrone m = megaDrone.createMicroDrone(mat_red); // returns null if should not add new drone
             if(m != null) {
                 // PLace the new drone between the player and the megaDrone
-                Vector3f v = playerNode.getWorldTranslation().
+                Vector3f v = FemaleChar.getWorldTranslation().
                         subtract(megaDrone.getSpatial().getWorldTranslation());
                 v.setY(0).normalizeLocal();
                 v = v.mult(20f);
@@ -601,7 +591,7 @@ public class PlayAppState extends AbstractAppState implements
             // Increment counter of rounds fired for the GUI HUD
             stateManager.getState(GuiAppState.class).addRound();
             // Play the gun firing sound
-            shotSound.setLocalTranslation(player.getPhysicsLocation());
+            shotSound.setLocalTranslation(FemaleChar.getWorldTranslation());
             shotSound.playInstance();
             
             // Create and move the bullet
@@ -609,7 +599,7 @@ public class PlayAppState extends AbstractAppState implements
             bulletg.setMaterial(mat_bullet);
             bulletg.setName("bullet");
             //don't just use cam.getLocation. bullets will not work when back is on a wall
-            bulletg.setLocalTranslation(playerNode.getWorldTranslation().add(0, 6f, 0));
+            bulletg.setLocalTranslation(FemaleChar.getWorldTranslation().add(0, 6f, 0));
             bulletg.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
             bulletg.addControl(new RigidBodyControl(bulletCollisionShape, 0.1f));
             bulletg.getControl(RigidBodyControl.class).setCcdMotionThreshold(0.01f);
@@ -730,7 +720,7 @@ public class PlayAppState extends AbstractAppState implements
      */
     public void resetPlayer() {
         // Put the player back to their proper start location
-        player.setPhysicsLocation(new Vector3f(-95f, 30f, 95f));
+        playerNode.setLocalTranslation(new Vector3f(-95f, 30f, 95f));
     }
     
     /*

@@ -17,7 +17,7 @@ import java.util.Set;
  */
 public class MegaDrone extends Enemy {
     private final static int MAX_MINIONS = 3;
-    private Node target;
+    private Spatial target;
     private Spatial s;
     private MegaDroneControl control;
     private GhostControl gControl;
@@ -31,7 +31,7 @@ public class MegaDrone extends Enemy {
     private Set<MicroDrone> minions;
   
     
-    public MegaDrone(String name, Material mat, Node target, Spatial s) {
+    public MegaDrone(String name, Material mat, Spatial target, Spatial s) {
         this.s =  s;
         this.s.setLocalTranslation(0f, -1f, 0f);
         this.s.setLocalScale(6f);

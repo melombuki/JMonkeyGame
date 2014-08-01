@@ -5,6 +5,7 @@ import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.material.Material;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Sphere;
 
 /**
@@ -20,7 +21,7 @@ public class MicroDrone extends Enemy {
     private final float radius = 2;
     public final static int points = 25;
   
-    public MicroDrone(String name, Material mat, Node target) {
+    public MicroDrone(String name, Material mat, Spatial target) {
         s = new Sphere(32, 32, radius);
         g = new Geometry(name, s);
         g.setMaterial(mat);
