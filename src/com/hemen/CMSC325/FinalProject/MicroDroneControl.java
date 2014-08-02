@@ -4,7 +4,6 @@ import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
-import com.jme3.scene.Spatial;
 
 /**
  * This class controls the movement of an object by making it "fly" towards
@@ -14,13 +13,13 @@ import com.jme3.scene.Spatial;
  * @author Joshua P. Hemen
  */
 public class MicroDroneControl extends RigidBodyControl {
-    private Spatial target;
+    private Node target;
     private float force = 10f; //default value
     private Vector3f steering;
     private float distance;
     
     // Will not float if no value is passed for the height
-    public MicroDroneControl(CollisionShape shape, float mass, Spatial target) {
+    public MicroDroneControl(CollisionShape shape, float mass, Node target) {
         super(shape, mass);
         this.target = target;
     }

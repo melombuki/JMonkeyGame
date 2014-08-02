@@ -5,7 +5,6 @@ import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
-import com.jme3.scene.Spatial;
 
 /**
  * This class controls the movement of an object by making it "fly" towards
@@ -15,7 +14,7 @@ import com.jme3.scene.Spatial;
  * @author Joshua P. Hemen
  */
 public class MegaDroneControl extends RigidBodyControl {
-    private Spatial target;
+    private Node target;
     private Vector3f impulse = new Vector3f(0.15f, 0f, 0.15f); //moves very slow
     private Vector3f steering;
     private Vector3f direction;
@@ -23,7 +22,7 @@ public class MegaDroneControl extends RigidBodyControl {
     private float height = 0;
     
     // Allows the user to set a floating height value if desired
-    public MegaDroneControl(CollisionShape shape, float mass, Spatial target, float height) {
+    public MegaDroneControl(CollisionShape shape, float mass, Node target, float height) {
         super(shape, mass);
         this.target = target;
         this.height = height;

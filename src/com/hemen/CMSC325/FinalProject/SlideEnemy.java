@@ -7,7 +7,6 @@ import com.jme3.material.Material;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
-import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
 
 /**
@@ -22,14 +21,14 @@ public class SlideEnemy extends Enemy {
     private Geometry g;
     private SlideEnemyControl control;
     private GhostControl gControl;
-    private Spatial target; //need to know location to shoot at it
+    private Node target; //need to know location to shoot at it
     private final float size = 2; //half the total length of the enemy cube
     public final static int points = 10;
     private static final float outterRadius = 10;
     private long shotMark = 0; //time since last shot fired
     private long spawnMark = 0;
   
-    public SlideEnemy(String name, Material mat, Spatial target) {
+    public SlideEnemy(String name, Material mat, Node target) {
         spawnMark = System.currentTimeMillis();
         // Set up the visual parts of this object
         s = new Box(size, size, size);

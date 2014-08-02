@@ -1,4 +1,4 @@
-//TODO: Stuff
+//TODO: 
 // 1. Give yourself a health meter. (optional)
 // 2. Add explosion to the slideEnemy when player gets too close (optional)
 //      |--> If not, get rid of it's ghostcontrol
@@ -23,9 +23,9 @@ import com.jme3.bullet.PhysicsSpace;
 import com.jme3.bullet.collision.PhysicsCollisionEvent;
 import com.jme3.bullet.collision.PhysicsCollisionListener;
 import com.jme3.bullet.collision.PhysicsCollisionObject;
+import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
 import com.jme3.bullet.collision.shapes.SphereCollisionShape;
-import com.jme3.bullet.control.BetterCharacterControl;
-import com.jme3.bullet.control.GhostControl;
+import com.jme3.bullet.control.CharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
@@ -42,6 +42,7 @@ import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.queue.RenderQueue;
@@ -79,11 +80,15 @@ public class PlayAppState extends AbstractAppState implements
     private Spatial sceneModel;
     private BulletAppState bulletAppState;
     private Node playerNode; //wraps player CharacterControl with a name
+<<<<<<< HEAD
     private Spatial femaleChar;
     private AnimControl control;
     private AnimChannel channel;
     private BetterCharacterControl player;
     private GhostControl playerGhost;
+=======
+    private CharacterControl player;
+>>>>>>> parent of 14f86d8... Player is not controled by the BetterCharacterControl. Still needs tweaking to make movement move natural.
     private boolean left = false, right = false, up = false, down = false;
     private MegaDrone megaDrone;
     private SlideEnemy slideEnemy;
@@ -94,6 +99,9 @@ public class PlayAppState extends AbstractAppState implements
     private int currentRound = 1;
     private AmbientLight al;
     private DirectionalLight dl;
+    private Quaternion hoverJetQ; //rotation of the hover jet
+//    private Quaternion yaw90 = 
+//            new Quaternion(0f, 1f, 0f, 1f); //90 rotation to the right
     private boolean isRoundOver = false;
     
     //Testing
@@ -102,7 +110,9 @@ public class PlayAppState extends AbstractAppState implements
 
     // Temporary vectors used on each frame.
     // They here to avoid instanciating new vectors on each frame
-    private Vector3f walkDirection = new Vector3f(0f, 0f, 0f);
+    private Vector3f camDir = new Vector3f();
+    private Vector3f camLeft = new Vector3f();
+    private Vector3f walkDirection = new Vector3f();
     private Vector3f boost = new Vector3f(0f, 0f, 0f);
     private Vector3f slideEnemyBullet = null;
     
@@ -151,7 +161,7 @@ public class PlayAppState extends AbstractAppState implements
         // Get the physics app state
         bulletAppState = stateManager.getState(BulletAppState.class);
         bulletAppState.setEnabled(false);
-        bulletAppState.getPhysicsSpace().enableDebug(assetManager);
+        //bulletAppState.getPhysicsSpace().enableDebug(assetManager);
 
         // Set up the bullet object
         bullet = new Sphere(32, 32, 0.2f, true, false);
@@ -184,11 +194,15 @@ public class PlayAppState extends AbstractAppState implements
         // a capsule collision shape and a CharacterControl.
         // We also put the player in its starting position.
         playerNode = new Node("player");
-        player = new BetterCharacterControl(1.5f, 3f, 8f); 
+        CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(1.5f, 3f, 1);
+        player = new CharacterControl(capsuleShape, 0.05f);
         player.setViewDirection(new Vector3f(1, 0, 0));
-        player.setJumpForce(new Vector3f(0f, 20f, 0f));
+        player.addCollideWithGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
+        player.setJumpSpeed(20);
+        player.setFallSpeed(30);
+        player.setGravity(30);
         playerNode.addControl(player);
-              
+        
         listener.setVolume(0); //mute
         
         // Set up the shooting audio
@@ -205,6 +219,7 @@ public class PlayAppState extends AbstractAppState implements
         rootNode.attachChild(megaDroneHitSound);
         
         // Set up the hover Jet
+<<<<<<< HEAD
         femaleChar = assetManager.loadModel("Models/FemaleChar/femaleModelHalfHead.mesh.xml");
 //        Material mat = new Material(
 //                assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
@@ -220,6 +235,17 @@ public class PlayAppState extends AbstractAppState implements
         // Set up the camera bits
         flyCam.setEnabled(false);
         chaseCam = new ChaseCamera(cam, femaleChar, inputManager);
+=======
+        Spatial hoverJet = assetManager.loadModel("Models/femaleModelBody271R90Z/femaleModelBody271R90Z.j3o");
+        hoverJet.setLocalScale(0.25f);
+        hoverJet.setName("hoverJet");
+        hoverJetQ = new Quaternion();
+        playerNode.attachChild(hoverJet);
+
+        // Set up the camera bits
+        flyCam.setEnabled(false);
+        chaseCam = new ChaseCamera(cam, playerNode, inputManager);
+>>>>>>> parent of 14f86d8... Player is not controled by the BetterCharacterControl. Still needs tweaking to make movement move natural.
         chaseCam.setDefaultHorizontalRotation(FastMath.QUARTER_PI * 3f);
         chaseCam.setSmoothMotion(false);
         chaseCam.setLookAtOffset(new Vector3f(0, 6f, 0));
@@ -230,7 +256,11 @@ public class PlayAppState extends AbstractAppState implements
         chaseCam.setInvertVerticalAxis(true);
 
         // Init the mothership and make the sensor field only collide with the player
+<<<<<<< HEAD
         megaDrone = new MegaDrone("megaDrone", mat_blue, femaleChar,
+=======
+        megaDrone = new MegaDrone("megaDrone", mat_blue, playerNode,
+>>>>>>> parent of 14f86d8... Player is not controled by the BetterCharacterControl. Still needs tweaking to make movement move natural.
                 assetManager.loadModel("Models/Mothership/Mothership.j3o"));
         // Only allow the ghost control to collide with the player
         megaDrone.getGhostControl().setCollisionGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
@@ -238,7 +268,11 @@ public class PlayAppState extends AbstractAppState implements
         
         // Init the simple slide enemy and hill enemy
         hillEnemy = new HillEnemy("hillEnemy", mat_blue);
+<<<<<<< HEAD
         slideEnemy = new SlideEnemy("slideEnemy", mat_green, femaleChar);
+=======
+        slideEnemy = new SlideEnemy("slideEnemy", mat_green, playerNode);
+>>>>>>> parent of 14f86d8... Player is not controled by the BetterCharacterControl. Still needs tweaking to make movement move natural.
         // Only allow the ghost control to collide with the player
         slideEnemy.getGhostControl().setCollisionGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
         slideEnemy.getGhostControl().setCollideWithGroups(PhysicsCollisionObject.COLLISION_GROUP_02); 
@@ -266,29 +300,34 @@ public class PlayAppState extends AbstractAppState implements
                 else {roundOver();} // Just the end the current round
             }
 
-            Vector3f modelForwardDir = playerNode.getWorldRotation().mult(Vector3f.UNIT_Z);
-            Vector3f modelLeftDir = playerNode.getWorldRotation().mult(Vector3f.UNIT_X);
-
-            // WalkDirection is global!
-            // You *can* make your character fly with this.
-            walkDirection.set(0, 0, 0);
+            // Handle player movement (the user's character)
+            camDir = cam.getDirection().multLocal(0.6f); // The use of multLocal here is to control the rate of movement multiplier for character walk speed.
+            camLeft = cam.getLeft().multLocal(0.4f);
+            walkDirection.set(boost);
+            boost.set(0f, 0f, 0f); //reset the booster
             if (left) {
-                walkDirection.addLocal(modelLeftDir.mult(15));
-            } else if (right) {
-                walkDirection.addLocal(modelLeftDir.negate().multLocal(15));
+                walkDirection.addLocal(camLeft);
+            }
+            if (right) {
+                walkDirection.addLocal(camLeft.negate());
             }
             if (up) {
-                walkDirection.addLocal(modelForwardDir.mult(15));
-            } else if (down) {
-                walkDirection.addLocal(modelForwardDir.negate().multLocal(15));
+                walkDirection.addLocal(camDir);
+            }
+            if (down) {
+                walkDirection.addLocal(camDir.negate());
             }
             player.setWalkDirection(walkDirection);
-            
-            // ViewDirection is local to characters physics system!
-            // The final world rotation depends on the gravity and on the state of
-            // setApplyPhysicsLocal()
-            player.setViewDirection(player.getViewDirection().interpolate(
-                    cam.getDirection(), 0.05f));
+
+            // Slowly adjust the hoverJet to match camera direction
+            Spatial hJ = rootNode.getChild("hoverJet");
+            float angles[] = new float[3];
+            if(hJ != null) {
+                hoverJetQ.slerp(cam.getRotation(), 0.025f);
+                hoverJetQ.toAngles(angles);
+                hoverJetQ.fromAngleAxis(angles[1], Vector3f.UNIT_Y).normalizeLocal();
+                hJ.setLocalRotation(hoverJetQ);
+            }
 
             // Attempt to have slideEnemy shoot
             if(rootNode.getChild("slideEnemy") != null) {
@@ -313,7 +352,11 @@ public class PlayAppState extends AbstractAppState implements
                 queueString = respawnQ.poll();
                 if(rootNode.getChild("slideEnemy") == null && 
                         queueString.equals("slideEnemy")) {
+<<<<<<< HEAD
                     slideEnemy = new SlideEnemy("slideEnemy", mat_green, femaleChar);
+=======
+                    slideEnemy = new SlideEnemy("slideEnemy", mat_green, playerNode);
+>>>>>>> parent of 14f86d8... Player is not controled by the BetterCharacterControl. Still needs tweaking to make movement move natural.
                     rootNode.attachChild(slideEnemy.getGeo());
                     bulletAppState.getPhysicsSpace().add(slideEnemy.getEnemyControl());
                     bulletAppState.getPhysicsSpace().add(slideEnemy.getGhostControl());
@@ -380,7 +423,10 @@ public class PlayAppState extends AbstractAppState implements
             // Add everything to the physics space
             bulletAppState.getPhysicsSpace().addAll(sceneModel);
             bulletAppState.getPhysicsSpace().add(player);
+<<<<<<< HEAD
             bulletAppState.getPhysicsSpace().addAll(femaleChar);
+=======
+>>>>>>> parent of 14f86d8... Player is not controled by the BetterCharacterControl. Still needs tweaking to make movement move natural.
             bulletAppState.getPhysicsSpace().add(megaDrone.getEnemyControl());
             bulletAppState.getPhysicsSpace().add(megaDrone.getGhostControl());
             bulletAppState.getPhysicsSpace().add(slideEnemy.getEnemyControl());
@@ -513,12 +559,20 @@ public class PlayAppState extends AbstractAppState implements
         }
         
         // Check for infiltration of the mother ship's airspace
+<<<<<<< HEAD
         if(megaDrone.getGhostControl().getOverlappingObjects().contains(femaleChar.getControl(GhostControl.class))) {
+=======
+        if(megaDrone.getGhostControl().getOverlappingObjects().contains(playerNode.getControl(CharacterControl.class))) {
+>>>>>>> parent of 14f86d8... Player is not controled by the BetterCharacterControl. Still needs tweaking to make movement move natural.
             // Spawn a new drone if there is less than 4 in scene already
             MicroDrone m = megaDrone.createMicroDrone(mat_red); // returns null if should not add new drone
             if(m != null) {
                 // PLace the new drone between the player and the megaDrone
+<<<<<<< HEAD
                 Vector3f v = femaleChar.getWorldTranslation().
+=======
+                Vector3f v = playerNode.getWorldTranslation().
+>>>>>>> parent of 14f86d8... Player is not controled by the BetterCharacterControl. Still needs tweaking to make movement move natural.
                         subtract(megaDrone.getSpatial().getWorldTranslation());
                 v.setY(0).normalizeLocal();
                 v = v.mult(20f);
@@ -611,7 +665,11 @@ public class PlayAppState extends AbstractAppState implements
             // Increment counter of rounds fired for the GUI HUD
             stateManager.getState(GuiAppState.class).addRound();
             // Play the gun firing sound
+<<<<<<< HEAD
             shotSound.setLocalTranslation(femaleChar.getWorldTranslation());
+=======
+            shotSound.setLocalTranslation(player.getPhysicsLocation());
+>>>>>>> parent of 14f86d8... Player is not controled by the BetterCharacterControl. Still needs tweaking to make movement move natural.
             shotSound.playInstance();
             
             // Create and move the bullet
@@ -619,7 +677,11 @@ public class PlayAppState extends AbstractAppState implements
             bulletg.setMaterial(mat_bullet);
             bulletg.setName("bullet");
             //don't just use cam.getLocation. bullets will not work when back is on a wall
+<<<<<<< HEAD
             bulletg.setLocalTranslation(femaleChar.getWorldTranslation().add(0, 6f, 0));
+=======
+            bulletg.setLocalTranslation(playerNode.getWorldTranslation().add(0, 6f, 0));
+>>>>>>> parent of 14f86d8... Player is not controled by the BetterCharacterControl. Still needs tweaking to make movement move natural.
             bulletg.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
             bulletg.addControl(new RigidBodyControl(bulletCollisionShape, 0.1f));
             bulletg.getControl(RigidBodyControl.class).setCcdMotionThreshold(0.01f);
@@ -740,7 +802,7 @@ public class PlayAppState extends AbstractAppState implements
      */
     public void resetPlayer() {
         // Put the player back to their proper start location
-        playerNode.setLocalTranslation(new Vector3f(-95f, 30f, 95f));
+        player.setPhysicsLocation(new Vector3f(-95f, 30f, 95f));
     }
     
     /*
