@@ -6,11 +6,16 @@
 
 package com.hemen.CMSC325.FinalProject;
 
+import com.jme3.animation.AnimChannel;
+import com.jme3.animation.AnimControl;
+import com.jme3.animation.AnimEventListener;
+import com.jme3.animation.LoopMode;
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.asset.AssetManager;
+import com.jme3.asset.TextureKey;
 import com.jme3.audio.AudioNode;
 import com.jme3.audio.Listener;
 import com.jme3.bullet.BulletAppState;
@@ -74,7 +79,9 @@ public class PlayAppState extends AbstractAppState implements
     private Spatial sceneModel;
     private BulletAppState bulletAppState;
     private Node playerNode; //wraps player CharacterControl with a name
-    private Spatial FemaleChar;
+    private Spatial femaleChar;
+    private AnimControl control;
+    private AnimChannel channel;
     private BetterCharacterControl player;
     private GhostControl playerGhost;
     private boolean left = false, right = false, up = false, down = false;
@@ -198,17 +205,21 @@ public class PlayAppState extends AbstractAppState implements
         rootNode.attachChild(megaDroneHitSound);
         
         // Set up the hover Jet
-        FemaleChar = assetManager.loadModel("Models/femaleModelBody271/femaleModelBody271.j3o");
-        FemaleChar.setLocalScale(0.25f);
-        FemaleChar.setName("FemaleChar");
+        femaleChar = assetManager.loadModel("Models/FemaleChar/femaleModelHalfHead.mesh.xml");
+//        Material mat = new Material(
+//                assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+//        femaleChar.setMaterial(mat);
+        femaleChar.setLocalScale(0.25f);
+        femaleChar.setName("femaleChar");
         playerGhost = new GhostControl(new SphereCollisionShape(2f));
         playerGhost.addCollideWithGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
-        FemaleChar.addControl(playerGhost);
-        playerNode.attachChild(FemaleChar);
+        femaleChar.addControl(playerGhost);
+        control = femaleChar.getControl(AnimControl.class);
+        playerNode.attachChild(femaleChar);
 
         // Set up the camera bits
         flyCam.setEnabled(false);
-        chaseCam = new ChaseCamera(cam, FemaleChar, inputManager);
+        chaseCam = new ChaseCamera(cam, femaleChar, inputManager);
         chaseCam.setDefaultHorizontalRotation(FastMath.QUARTER_PI * 3f);
         chaseCam.setSmoothMotion(false);
         chaseCam.setLookAtOffset(new Vector3f(0, 6f, 0));
@@ -219,7 +230,7 @@ public class PlayAppState extends AbstractAppState implements
         chaseCam.setInvertVerticalAxis(true);
 
         // Init the mothership and make the sensor field only collide with the player
-        megaDrone = new MegaDrone("megaDrone", mat_blue, FemaleChar,
+        megaDrone = new MegaDrone("megaDrone", mat_blue, femaleChar,
                 assetManager.loadModel("Models/Mothership/Mothership.j3o"));
         // Only allow the ghost control to collide with the player
         megaDrone.getGhostControl().setCollisionGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
@@ -227,7 +238,7 @@ public class PlayAppState extends AbstractAppState implements
         
         // Init the simple slide enemy and hill enemy
         hillEnemy = new HillEnemy("hillEnemy", mat_blue);
-        slideEnemy = new SlideEnemy("slideEnemy", mat_green, FemaleChar);
+        slideEnemy = new SlideEnemy("slideEnemy", mat_green, femaleChar);
         // Only allow the ghost control to collide with the player
         slideEnemy.getGhostControl().setCollisionGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
         slideEnemy.getGhostControl().setCollideWithGroups(PhysicsCollisionObject.COLLISION_GROUP_02); 
@@ -241,7 +252,7 @@ public class PlayAppState extends AbstractAppState implements
    * We also make sure here that the camera moves with player.
    */
     @Override
-    public void update(float tpf) {
+    public void update(float tpf) {      
         // Only update anything when the player is playing
         if(isRunning) {
             // Check if round is completed (i.e. all balls hit), or the game is over
@@ -302,7 +313,7 @@ public class PlayAppState extends AbstractAppState implements
                 queueString = respawnQ.poll();
                 if(rootNode.getChild("slideEnemy") == null && 
                         queueString.equals("slideEnemy")) {
-                    slideEnemy = new SlideEnemy("slideEnemy", mat_green, FemaleChar);
+                    slideEnemy = new SlideEnemy("slideEnemy", mat_green, femaleChar);
                     rootNode.attachChild(slideEnemy.getGeo());
                     bulletAppState.getPhysicsSpace().add(slideEnemy.getEnemyControl());
                     bulletAppState.getPhysicsSpace().add(slideEnemy.getGhostControl());
@@ -340,6 +351,10 @@ public class PlayAppState extends AbstractAppState implements
         super.setEnabled(enabled);
         
         if(enabled) {
+            channel = control.createChannel();
+            channel.setAnim("Run");
+            channel.setLoopMode(LoopMode.Loop);
+            
             // Set up a color for the sky
             if(!chaseCam.isEnabled()) {
                 // Seems to be a bug with JME3's chaseCam. Set enable method
@@ -365,7 +380,7 @@ public class PlayAppState extends AbstractAppState implements
             // Add everything to the physics space
             bulletAppState.getPhysicsSpace().addAll(sceneModel);
             bulletAppState.getPhysicsSpace().add(player);
-            bulletAppState.getPhysicsSpace().addAll(FemaleChar);
+            bulletAppState.getPhysicsSpace().addAll(femaleChar);
             bulletAppState.getPhysicsSpace().add(megaDrone.getEnemyControl());
             bulletAppState.getPhysicsSpace().add(megaDrone.getGhostControl());
             bulletAppState.getPhysicsSpace().add(slideEnemy.getEnemyControl());
@@ -382,6 +397,7 @@ public class PlayAppState extends AbstractAppState implements
         }
         else {
             // Remove playser input controls
+//            control.removeListener(this);
             enableControls(false);
             enableCrossHairs(false);
             bulletAppState.setEnabled(false);
@@ -497,12 +513,12 @@ public class PlayAppState extends AbstractAppState implements
         }
         
         // Check for infiltration of the mother ship's airspace
-        if(megaDrone.getGhostControl().getOverlappingObjects().contains(FemaleChar.getControl(GhostControl.class))) {
+        if(megaDrone.getGhostControl().getOverlappingObjects().contains(femaleChar.getControl(GhostControl.class))) {
             // Spawn a new drone if there is less than 4 in scene already
             MicroDrone m = megaDrone.createMicroDrone(mat_red); // returns null if should not add new drone
             if(m != null) {
                 // PLace the new drone between the player and the megaDrone
-                Vector3f v = FemaleChar.getWorldTranslation().
+                Vector3f v = femaleChar.getWorldTranslation().
                         subtract(megaDrone.getSpatial().getWorldTranslation());
                 v.setY(0).normalizeLocal();
                 v = v.mult(20f);
@@ -582,7 +598,11 @@ public class PlayAppState extends AbstractAppState implements
         } else if (binding.equals("Right")) {
           if (value) { right = true; } else { right = false; }
         } else if (binding.equals("Up")) {
-          if (value) { up = true; } else { up = false; }
+          if (value) { 
+              up = true;           
+          } else { 
+              up = false;
+          }
         } else if (binding.equals("Down")) {
           if (value) { down = true; } else { down = false; }
         } else if (binding.equals("Jump")) {
@@ -591,7 +611,7 @@ public class PlayAppState extends AbstractAppState implements
             // Increment counter of rounds fired for the GUI HUD
             stateManager.getState(GuiAppState.class).addRound();
             // Play the gun firing sound
-            shotSound.setLocalTranslation(FemaleChar.getWorldTranslation());
+            shotSound.setLocalTranslation(femaleChar.getWorldTranslation());
             shotSound.playInstance();
             
             // Create and move the bullet
@@ -599,7 +619,7 @@ public class PlayAppState extends AbstractAppState implements
             bulletg.setMaterial(mat_bullet);
             bulletg.setName("bullet");
             //don't just use cam.getLocation. bullets will not work when back is on a wall
-            bulletg.setLocalTranslation(FemaleChar.getWorldTranslation().add(0, 6f, 0));
+            bulletg.setLocalTranslation(femaleChar.getWorldTranslation().add(0, 6f, 0));
             bulletg.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
             bulletg.addControl(new RigidBodyControl(bulletCollisionShape, 0.1f));
             bulletg.getControl(RigidBodyControl.class).setCcdMotionThreshold(0.01f);
