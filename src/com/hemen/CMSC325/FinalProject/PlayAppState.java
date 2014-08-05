@@ -2,8 +2,6 @@
 // 1. Give yourself a health meter. (optional)
 // 2. Add explosion to the slideEnemy when player gets too close (optional)
 //      |--> If not, get rid of it's ghostcontrol
-
-
 package com.hemen.CMSC325.FinalProject;
 
 import com.jme3.app.Application;
