@@ -4,6 +4,10 @@
 //      |--> If not, get rid of it's ghostcontrol
 package com.hemen.CMSC325.FinalProject;
 
+import com.jme3.animation.AnimChannel;
+import com.jme3.animation.AnimControl;
+import com.jme3.animation.AnimEventListener;
+import com.jme3.animation.LoopMode;
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.AbstractAppState;
@@ -39,6 +43,7 @@ import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import com.jme3.scene.debug.SkeletonDebugger;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Sphere;
 import java.util.LinkedList;
@@ -53,7 +58,7 @@ import java.util.Queue;
  * @author Joshua P. Hemen
  */
 public class PlayAppState extends AbstractAppState implements 
-        PhysicsCollisionListener, ActionListener {
+        PhysicsCollisionListener, ActionListener, AnimEventListener {
     // Create normal app variables for ease of use
     private SimpleApplication app;
     private Node              rootNode;
@@ -72,6 +77,8 @@ public class PlayAppState extends AbstractAppState implements
     private Node playerNode; //wraps player CharacterControl with a name
     private Spatial FemaleChar;
     private Node playerGun; //position for a gun held by the player
+    private AnimControl control;
+    private AnimChannel channel;
     private CharControl player;
     private boolean left = false, right = false, up = false, down = false;
     private MegaDrone megaDrone;
@@ -84,6 +91,7 @@ public class PlayAppState extends AbstractAppState implements
     private AmbientLight al;
     private DirectionalLight dl;
     private boolean isRoundOver = false;
+    private boolean isRun = false;
     
     //Testing
     // Respawn queue to pull cycles out of collision method
@@ -94,6 +102,7 @@ public class PlayAppState extends AbstractAppState implements
     private Vector3f walkDirection = new Vector3f(0f, 0f, 0f);
     private Vector3f boost = new Vector3f(0f, 0f, 0f);
     private Vector3f slideEnemyBullet = null;
+    private Vector3f gravity = new Vector3f(0f, -30f, 0f);
     
     // Temp vars for collision method
     Spatial NodeA;
@@ -140,7 +149,7 @@ public class PlayAppState extends AbstractAppState implements
         // Get the physics app state
         bulletAppState = stateManager.getState(BulletAppState.class);
         bulletAppState.setEnabled(false);
-        bulletAppState.getPhysicsSpace().enableDebug(assetManager);
+        bulletAppState.setDebugEnabled(true);
 
         // Set up the bullet object
         bullet = new Sphere(32, 32, 0.2f, true, false);
@@ -175,7 +184,7 @@ public class PlayAppState extends AbstractAppState implements
         playerNode = new Node("player");
         player = new CharControl(1.5f, 7f, 8f);
         player.setViewDirection(new Vector3f(1f, 0f, 0f));
-        player.setJumpForce(new Vector3f(0f, 25f, 0f));
+        player.setJumpForce(new Vector3f(0f, 100f, 0f));
         player.getRigidBody().addCollideWithGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
         playerNode.addControl(player);
         playerGun = new Node("gun");
@@ -199,13 +208,9 @@ public class PlayAppState extends AbstractAppState implements
         
         // Set up the female player
         FemaleChar = assetManager.loadModel("Models/femaleModelBody271/femaleModelBody271.j3o");
-        FemaleChar.setLocalScale(0.25f);
+        //FemaleChar.setLocalScale(0.25f);
+        FemaleChar.rotate(0f, FastMath.QUARTER_PI, 0f);
         FemaleChar.setName("FemaleChar");
-        rootNode.attachChild(FemaleChar);
-        if(rootNode.getChild("femaleModelHalfHead") != null)
-            System.out.println("We are in business.");
-        else
-            System.out.println("Try again.");
         playerNode.attachChild(FemaleChar);
 
         // Set up the camera bits
@@ -246,6 +251,12 @@ public class PlayAppState extends AbstractAppState implements
     public void update(float tpf) {
         // Only update anything when the player is playing
         if(isRunning) {
+            if(!isRun) {
+                channel.setAnim("Run");
+                channel.setLoopMode(LoopMode.Loop);
+                channel.setSpeed(tpf*200f);
+                isRun = true;
+            }
             // Check if round is completed (i.e. all balls hit), or the game is over
             if(megaDrone.gethealth() <= 0) {
                 isRoundOver = true;
@@ -363,6 +374,18 @@ public class PlayAppState extends AbstractAppState implements
             rootNode.attachChild(megaDrone.getSpatial());
             rootNode.attachChild(slideEnemy.getGeo());
             rootNode.attachChild(hillEnemy.getGeo());
+            
+            // Set up the animation control and channel
+            control = rootNode.getChild("zelda").getControl(AnimControl.class);
+            control.addListener(this); 
+            channel = control.createChannel();
+            SkeletonDebugger skdb = new SkeletonDebugger("skeleton", control.getSkeleton());
+            Material skmat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+            skmat.setColor("Color", ColorRGBA.Blue);
+            skmat.getAdditionalRenderState().setDepthTest(false);
+            skdb.setMaterial(skmat);
+            playerNode.attachChild(skdb);
+            
             
             // Add everything to the physics space
             bulletAppState.getPhysicsSpace().addAll(sceneModel);
@@ -667,6 +690,7 @@ public class PlayAppState extends AbstractAppState implements
         
         // Clear all movement from the physics space
         bulletAppState.getPhysicsSpace().clearForces();
+        bulletAppState.getPhysicsSpace().setGravity(gravity);
         bulletAppState.getPhysicsSpace().applyGravity(); //reset effects of grav
         
         // Reset the mothership back to start location
@@ -881,5 +905,13 @@ public class PlayAppState extends AbstractAppState implements
         // Here is the light reading
         stateManager.getState(GuiAppState.class).setEnabled(true);
         stateManager.getState(GuiAppState.class).goToPause();
+    }
+
+    @Override
+    public void onAnimCycleDone(AnimControl control, AnimChannel channel, String animName) {
+    }
+
+    @Override
+    public void onAnimChange(AnimControl control, AnimChannel channel, String animName) {
     }
 }
