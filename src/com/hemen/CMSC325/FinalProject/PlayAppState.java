@@ -17,8 +17,6 @@ import com.jme3.bullet.collision.PhysicsCollisionEvent;
 import com.jme3.bullet.collision.PhysicsCollisionListener;
 import com.jme3.bullet.collision.PhysicsCollisionObject;
 import com.jme3.bullet.collision.shapes.SphereCollisionShape;
-import com.jme3.bullet.control.BetterCharacterControl;
-import com.jme3.bullet.control.GhostControl;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
@@ -168,13 +166,13 @@ public class PlayAppState extends AbstractAppState implements
         initCrossHairText();
         
         // Init the respawnQ
-        respawnQ = new LinkedList<String>();
+        respawnQ = new LinkedList<>();
 
         // We set up collision detection for the player by creating
         // a capsule collision shape and a CharacterControl.
         // We also put the player in its starting position.
         playerNode = new Node("player");
-        player = new CharControl(1.5f, 3f, 8f);
+        player = new CharControl(1.5f, 6f, 8f);
         player.setViewDirection(new Vector3f(1, 0, 0));
         player.setJumpForce(new Vector3f(0f, 20f, 0f));
         player.getRigidBody().addCollideWithGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
@@ -393,6 +391,7 @@ public class PlayAppState extends AbstractAppState implements
      * This method handles what to do when a collision occurs. It turns a ball
      * green if it has not been hit yet.
      */
+    @Override
     public void collision(PhysicsCollisionEvent e) {
         // Check for collision with any microDrone and a bullet
         NodeA = e.getNodeA();
@@ -405,90 +404,96 @@ public class PlayAppState extends AbstractAppState implements
             // Remove the bullet
             bulletAppState.getPhysicsSpace().remove(NodeA);
             NodeA.removeFromParent();
-            
-            if(NameB.equals("microDrone")) {
-                shockwave.explode(NodeB.getWorldTranslation());
-                bulletAppState.getPhysicsSpace().remove(NodeB);
-                NodeB.removeFromParent();
-                megaDrone.removeMinion(NodeB);
-                boomSound.setLocalTranslation(NodeB.getWorldTranslation());
-                boomSound.playInstance();
-                stateManager.getState(GuiAppState.class).showHitObject(NameB, MicroDrone.points);
-            } else if(NameB.equals("megaDrone")) {
-                 megaDrone.hit(); //decrements health but only sets flag when "dead"
-                 
-                if(megaDrone.gethealth() > 0) { //hit but not dead
-                    megaDroneHitSound.setLocalTranslation(megaDrone.getSpatial().getWorldTranslation());
-                    megaDroneHitSound.playInstance();
-                    stateManager.getState(GuiAppState.class).showHitObject(NameB, MegaDrone.hitPoint);
-                } else { //hit and dead
-                    boomSound.setLocalTranslation(megaDrone.getSpatial().getWorldTranslation());
+            switch (NameB) {
+                case "microDrone":
+                    shockwave.explode(NodeB.getWorldTranslation());
+                    bulletAppState.getPhysicsSpace().remove(NodeB);
+                    NodeB.removeFromParent();
+                    megaDrone.removeMinion(NodeB);
+                    boomSound.setLocalTranslation(NodeB.getWorldTranslation());
                     boomSound.playInstance();
-                    stateManager.getState(GuiAppState.class).showHitObject(NameB, MegaDrone.killPoint);
-                }
-            } else if(NameB.equals("slideEnemy")) {
-                slideEnemy.hit();
-                shockwave.explode(NodeB.getWorldTranslation());
-                bulletAppState.getPhysicsSpace().remove(slideEnemy.getEnemyControl());
-                bulletAppState.getPhysicsSpace().remove(slideEnemy.getGhostControl());
-                NodeB.removeFromParent();
-                boomSound.setLocalTranslation(NodeB.getWorldTranslation());
-                boomSound.playInstance();
-                stateManager.getState(GuiAppState.class).showHitObject(NameB, SlideEnemy.points);
-                respawnQ.add(NameB);
-            } else if(NameB.equals("hillEnemy")) {
-                hillEnemy.hit();
-                shockwave.explode(NodeB.getWorldTranslation());
-                bulletAppState.getPhysicsSpace().remove(NodeB);
-                NodeB.removeFromParent();
-                boomSound.setLocalTranslation(NodeB.getWorldTranslation());
-                boomSound.playInstance();
-                stateManager.getState(GuiAppState.class).showHitObject(NameB, HillEnemy.points);
-                respawnQ.add(NameB);
+                    stateManager.getState(GuiAppState.class).showHitObject(NameB, MicroDrone.points);
+                    break;
+                case "megaDrone":
+                    megaDrone.hit(); //decrements health but only sets flag when "dead"
+                    if(megaDrone.gethealth() > 0) { //hit but not dead
+                        megaDroneHitSound.setLocalTranslation(megaDrone.getSpatial().getWorldTranslation());
+                        megaDroneHitSound.playInstance();
+                        stateManager.getState(GuiAppState.class).showHitObject(NameB, MegaDrone.hitPoint);
+                    } else { //hit and dead
+                        boomSound.setLocalTranslation(megaDrone.getSpatial().getWorldTranslation());
+                        boomSound.playInstance();
+                        stateManager.getState(GuiAppState.class).showHitObject(NameB, MegaDrone.killPoint);
+                    }
+                    break;
+                case "slideEnemy":
+                    slideEnemy.hit();
+                    shockwave.explode(NodeB.getWorldTranslation());
+                    bulletAppState.getPhysicsSpace().remove(slideEnemy.getEnemyControl());
+                    bulletAppState.getPhysicsSpace().remove(slideEnemy.getGhostControl());
+                    NodeB.removeFromParent();
+                    boomSound.setLocalTranslation(NodeB.getWorldTranslation());
+                    boomSound.playInstance();
+                    stateManager.getState(GuiAppState.class).showHitObject(NameB, SlideEnemy.points);
+                    respawnQ.add(NameB);
+                    break;
+                case "hillEnemy":
+                    hillEnemy.hit();
+                    shockwave.explode(NodeB.getWorldTranslation());
+                    bulletAppState.getPhysicsSpace().remove(NodeB);
+                    NodeB.removeFromParent();
+                    boomSound.setLocalTranslation(NodeB.getWorldTranslation());
+                    boomSound.playInstance();
+                    stateManager.getState(GuiAppState.class).showHitObject(NameB, HillEnemy.points);
+                    respawnQ.add(NameB);
+                    break;
             }
         } else if(NameB.equals("bullet")) {
             // Remove the bullet
             bulletAppState.getPhysicsSpace().remove(NodeB);
             NodeB.removeFromParent();
-            
-            if(NameA.equals("microDrone")) {
-                shockwave.explode(NodeA.getWorldTranslation());
-                bulletAppState.getPhysicsSpace().remove(NodeA);
-                NodeA.removeFromParent();
-                megaDrone.removeMinion(NodeA);
-                boomSound.setLocalTranslation(NodeA.getWorldTranslation());
-                boomSound.playInstance();
-                stateManager.getState(GuiAppState.class).showHitObject(NameA, MicroDrone.points);
-            } else if(NameA.equals("megaDrone")) {
-                megaDrone.hit(); //decrements health but only sets flag when "dead"
-                
-                if(megaDrone.gethealth() > 0) { //hit but not dead
-                    megaDroneHitSound.setLocalTranslation(megaDrone.getSpatial().getWorldTranslation());
-                    megaDroneHitSound.playInstance();
-                    stateManager.getState(GuiAppState.class).showHitObject(NameA, MegaDrone.hitPoint);
-                } else { //hit and dead
-                    boomSound.setLocalTranslation(megaDrone.getSpatial().getWorldTranslation());
+            switch (NameA) {
+                case "microDrone":
+                    shockwave.explode(NodeA.getWorldTranslation());
+                    bulletAppState.getPhysicsSpace().remove(NodeA);
+                    NodeA.removeFromParent();
+                    megaDrone.removeMinion(NodeA);
+                    boomSound.setLocalTranslation(NodeA.getWorldTranslation());
                     boomSound.playInstance();
-                    stateManager.getState(GuiAppState.class).showHitObject(NameA, MegaDrone.killPoint);
-                }
-            } else if(NameA.equals("slideEnemy")) {
-                shockwave.explode(NodeA.getWorldTranslation());
-                bulletAppState.getPhysicsSpace().remove(slideEnemy.getEnemyControl());
-                bulletAppState.getPhysicsSpace().remove(slideEnemy.getGhostControl());
-                NodeA.removeFromParent();
-                boomSound.setLocalTranslation(NodeA.getWorldTranslation());
-                boomSound.playInstance();
-                stateManager.getState(GuiAppState.class).showHitObject(NameA, SlideEnemy.points);
-                respawnQ.add(NameA);
-            } else if(NameA.equals("hillEnemy")) {
-                hillEnemy.hit();
-                shockwave.explode(NodeA.getWorldTranslation());
-                bulletAppState.getPhysicsSpace().remove(NodeA);
-                NodeA.removeFromParent();
-                boomSound.setLocalTranslation(NodeB.getWorldTranslation());
-                boomSound.playInstance();
-                stateManager.getState(GuiAppState.class).showHitObject(NameA, HillEnemy.points);
-                respawnQ.add(NameA);
+                    stateManager.getState(GuiAppState.class).showHitObject(NameA, MicroDrone.points);
+                    break;
+                case "megaDrone":
+                    megaDrone.hit(); //decrements health but only sets flag when "dead"
+                    if(megaDrone.gethealth() > 0) { //hit but not dead
+                        megaDroneHitSound.setLocalTranslation(megaDrone.getSpatial().getWorldTranslation());
+                        megaDroneHitSound.playInstance();
+                        stateManager.getState(GuiAppState.class).showHitObject(NameA, MegaDrone.hitPoint);
+                    } else { //hit and dead
+                        boomSound.setLocalTranslation(megaDrone.getSpatial().getWorldTranslation());
+                        boomSound.playInstance();
+                        stateManager.getState(GuiAppState.class).showHitObject(NameA, MegaDrone.killPoint);
+                    }
+                    break;
+                case "slideEnemy":
+                    shockwave.explode(NodeA.getWorldTranslation());
+                    bulletAppState.getPhysicsSpace().remove(slideEnemy.getEnemyControl());
+                    bulletAppState.getPhysicsSpace().remove(slideEnemy.getGhostControl());
+                    NodeA.removeFromParent();
+                    boomSound.setLocalTranslation(NodeA.getWorldTranslation());
+                    boomSound.playInstance();
+                    stateManager.getState(GuiAppState.class).showHitObject(NameA, SlideEnemy.points);
+                    respawnQ.add(NameA);
+                    break;
+                case "hillEnemy":
+                    hillEnemy.hit();
+                    shockwave.explode(NodeA.getWorldTranslation());
+                    bulletAppState.getPhysicsSpace().remove(NodeA);
+                    NodeA.removeFromParent();
+                    boomSound.setLocalTranslation(NodeB.getWorldTranslation());
+                    boomSound.playInstance();
+                    stateManager.getState(GuiAppState.class).showHitObject(NameA, HillEnemy.points);
+                    respawnQ.add(NameA);
+                    break;
             }
         }
         
@@ -572,6 +577,7 @@ public class PlayAppState extends AbstractAppState implements
     /*
      * This method handles action events.
      */
+    @Override
     public void onAction(String binding, boolean value, float tpf) {
         if (binding.equals("Left")) {
           if (value) { left = true; } else { left = false; }
