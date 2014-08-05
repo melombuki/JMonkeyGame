@@ -73,8 +73,7 @@ public class PlayAppState extends AbstractAppState implements
     private BulletAppState bulletAppState;
     private Node playerNode; //wraps player CharacterControl with a name
     private Spatial FemaleChar;
-    private BetterCharacterControl player;
-    private GhostControl playerGhost;
+    private CharControl player;
     private boolean left = false, right = false, up = false, down = false;
     private MegaDrone megaDrone;
     private SlideEnemy slideEnemy;
@@ -175,9 +174,10 @@ public class PlayAppState extends AbstractAppState implements
         // a capsule collision shape and a CharacterControl.
         // We also put the player in its starting position.
         playerNode = new Node("player");
-        player = new BetterCharacterControl(1.5f, 3f, 8f); 
+        player = new CharControl(1.5f, 3f, 8f);
         player.setViewDirection(new Vector3f(1, 0, 0));
         player.setJumpForce(new Vector3f(0f, 20f, 0f));
+        player.getRigidBody().addCollideWithGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
         playerNode.addControl(player);
               
         listener.setVolume(0); //mute
@@ -195,13 +195,10 @@ public class PlayAppState extends AbstractAppState implements
         rootNode.attachChild(boomSound);
         rootNode.attachChild(megaDroneHitSound);
         
-        // Set up the hover Jet
+        // Set up the female player
         FemaleChar = assetManager.loadModel("Models/femaleModelBody271/femaleModelBody271.j3o");
         FemaleChar.setLocalScale(0.25f);
         FemaleChar.setName("FemaleChar");
-        playerGhost = new GhostControl(new SphereCollisionShape(2f));
-        playerGhost.addCollideWithGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
-        FemaleChar.addControl(playerGhost);
         playerNode.attachChild(FemaleChar);
 
         // Set up the camera bits
@@ -221,7 +218,7 @@ public class PlayAppState extends AbstractAppState implements
                 assetManager.loadModel("Models/Mothership/Mothership.j3o"));
         // Only allow the ghost control to collide with the player
         megaDrone.getGhostControl().setCollisionGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
-        megaDrone.getGhostControl().setCollideWithGroups(PhysicsCollisionObject.COLLISION_GROUP_02);
+        megaDrone.getGhostControl().setCollideWithGroups(PhysicsCollisionObject.COLLISION_GROUP_02);       
         
         // Init the simple slide enemy and hill enemy
         hillEnemy = new HillEnemy("hillEnemy", mat_blue);
@@ -388,6 +385,7 @@ public class PlayAppState extends AbstractAppState implements
             rootNode.removeLight(al);
             rootNode.removeLight(dl);
             megaDrone.getMinions().clear();
+            bulletAppState.getPhysicsSpace().removeCollisionListener(this);
         }
     }
 
@@ -495,7 +493,7 @@ public class PlayAppState extends AbstractAppState implements
         }
         
         // Check for infiltration of the mother ship's airspace
-        if(megaDrone.getGhostControl().getOverlappingObjects().contains(FemaleChar.getControl(GhostControl.class))) {
+        if(megaDrone.getGhostControl().getOverlappingObjects().contains(player.getRigidBody())) {
             // Spawn a new drone if there is less than 4 in scene already
             MicroDrone m = megaDrone.createMicroDrone(mat_red); // returns null if should not add new drone
             if(m != null) {
@@ -584,7 +582,9 @@ public class PlayAppState extends AbstractAppState implements
         } else if (binding.equals("Down")) {
           if (value) { down = true; } else { down = false; }
         } else if (binding.equals("Jump")) {
-          player.jump();
+            if(player.isOnGround() ) {
+                player.jump();
+            }
         } else if (binding.equals("shoot") && value) {
             // Increment counter of rounds fired for the GUI HUD
             stateManager.getState(GuiAppState.class).addRound();
