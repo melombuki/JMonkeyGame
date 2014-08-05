@@ -188,11 +188,13 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
         System.exit(0);
     }
     
+    @Override
     public void bind(Nifty nifty, Screen screen) {
         this.nifty = nifty;
         this.screen = screen;
     }
 
+    @Override
     public void onStartScreen() {
         Integer totalPoints;
         roundsFired = 0;
@@ -242,6 +244,7 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
         }
     }
 
+    @Override
     public void onEndScreen() {
     }
     
@@ -390,14 +393,11 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
         Path outfile = Paths.get("highscores");
         
         // Writer the output file in proper format
-        try {
-            BufferedWriter writer = Files.newBufferedWriter(outfile, charset);
-            
+        try (BufferedWriter writer = Files.newBufferedWriter(outfile, charset)) {
             for(int i = 0; i < scores.length; i++) {
                 writer.write(scores[i] + "\n");
             }
-            writer.flush(); //make sure everything is written to the file
-            writer.close(); //close the bufferedwriter
+            writer.flush();
         } catch (IOException x) {
             System.err.format("IOException: %s%n", x);
         }
@@ -417,9 +417,7 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
         }
         
         // Read the input file
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader("highscores"));
-            
+        try (BufferedReader reader = new BufferedReader(new FileReader("highscores"))) {
             String line; //single lines from the input file
             for(int i = 0; i < 5; i++) {
                 line = reader.readLine();
@@ -429,7 +427,6 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
                     scores[i] = line;
                 }
             }
-            reader.close(); //close the bufferedwriter
         } catch (IOException x) {
             System.err.format("IOException: %s%n", x);
         }
@@ -440,7 +437,7 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
      * highscores and writes them out to the highscore file.
      */
     private void updateHighScores() {
-        List<HighScoreEntry> list = new ArrayList<HighScoreEntry>();
+        List<HighScoreEntry> list = new ArrayList<>();
         
         // Fill scores with any previous entries
         readFile();

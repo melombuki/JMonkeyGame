@@ -71,6 +71,7 @@ public class PlayAppState extends AbstractAppState implements
     private BulletAppState bulletAppState;
     private Node playerNode; //wraps player CharacterControl with a name
     private Spatial FemaleChar;
+    private Node playerGun; //position for a gun held by the player
     private CharControl player;
     private boolean left = false, right = false, up = false, down = false;
     private MegaDrone megaDrone;
@@ -172,11 +173,14 @@ public class PlayAppState extends AbstractAppState implements
         // a capsule collision shape and a CharacterControl.
         // We also put the player in its starting position.
         playerNode = new Node("player");
-        player = new CharControl(1.5f, 6f, 8f);
-        player.setViewDirection(new Vector3f(1, 0, 0));
-        player.setJumpForce(new Vector3f(0f, 20f, 0f));
+        player = new CharControl(1.5f, 7f, 8f);
+        player.setViewDirection(new Vector3f(1f, 0f, 0f));
+        player.setJumpForce(new Vector3f(0f, 25f, 0f));
         player.getRigidBody().addCollideWithGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
         playerNode.addControl(player);
+        playerGun = new Node("gun");
+        playerNode.attachChild(playerGun);
+        playerGun.setLocalTranslation(new Vector3f(0f, 5f, 2f));
               
         listener.setVolume(0); //mute
         
@@ -197,6 +201,11 @@ public class PlayAppState extends AbstractAppState implements
         FemaleChar = assetManager.loadModel("Models/femaleModelBody271/femaleModelBody271.j3o");
         FemaleChar.setLocalScale(0.25f);
         FemaleChar.setName("FemaleChar");
+        rootNode.attachChild(FemaleChar);
+        if(rootNode.getChild("femaleModelHalfHead") != null)
+            System.out.println("We are in business.");
+        else
+            System.out.println("Try again.");
         playerNode.attachChild(FemaleChar);
 
         // Set up the camera bits
@@ -603,7 +612,7 @@ public class PlayAppState extends AbstractAppState implements
             bulletg.setMaterial(mat_bullet);
             bulletg.setName("bullet");
             //don't just use cam.getLocation. bullets will not work when back is on a wall
-            bulletg.setLocalTranslation(FemaleChar.getWorldTranslation().add(0, 6f, 0));
+            bulletg.setLocalTranslation(playerGun.getWorldTranslation());
             bulletg.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
             bulletg.addControl(new RigidBodyControl(bulletCollisionShape, 0.1f));
             bulletg.getControl(RigidBodyControl.class).setCcdMotionThreshold(0.01f);

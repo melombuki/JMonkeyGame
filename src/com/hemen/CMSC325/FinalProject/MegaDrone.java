@@ -4,7 +4,6 @@ import com.jme3.bullet.collision.shapes.SphereCollisionShape;
 import com.jme3.bullet.control.GhostControl;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.material.Material;
-import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import java.util.HashSet;
 import java.util.Set;
@@ -41,7 +40,7 @@ public class MegaDrone extends Enemy {
         this.target = target;
         
         // Set up the minion queue
-        minions = new HashSet<MicroDrone>();
+        minions = new HashSet<>();
         
         // Creates a rough approximation of the shape and makes it float at Y = 35 
         control = new MegaDroneControl(new SphereCollisionShape(innerRadius), 3f, target, 35f);

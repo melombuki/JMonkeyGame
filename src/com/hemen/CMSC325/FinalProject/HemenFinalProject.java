@@ -62,6 +62,7 @@ public class HemenFinalProject extends SimpleApplication {
         app.start();
     }
   
+    @Override
     public void simpleInitApp() {
         // Clear the debug display info
         setDisplayStatView(false); setDisplayFps(false);
