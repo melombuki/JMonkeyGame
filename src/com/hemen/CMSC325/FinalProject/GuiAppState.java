@@ -117,15 +117,18 @@ public class GuiAppState extends AbstractAppState implements ScreenController {
             nifty.getCurrentScreen().findElementByName(
                     "timer").getRenderer(TextRenderer.class).setText("Time: " +
                         getTime(timer.getTimeInSeconds() - startMark));
+            
+            // Clear the hit object after 2 seconds have expired
             if(timer.getTimeInSeconds() - hitMark > 2) {
                 nifty.getCurrentScreen().findElementByName("hitObject").getRenderer(
                     TextRenderer.class).setText("");
-                
+            }
+    
             //Update the total number of rounds fired
             nifty.getCurrentScreen().findElementByName(
                 "roundsFired").getRenderer(TextRenderer.class)
                     .setText("Shots: " + roundsFired.toString());
-            }
+            
         }
     }
     

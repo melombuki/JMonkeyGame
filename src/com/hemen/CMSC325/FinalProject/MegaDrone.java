@@ -23,7 +23,8 @@ public class MegaDrone extends Enemy {
     private final float innerRadius = 9;
     private final float outterRadius = 30;
     private long lastSpawnTime = 0;
-    private int health = 1000;
+//    private int health = 1000;
+    private int health = 10;
     public static final int hitPoint = 5;
     public static final int killPoint = 500;
     
@@ -84,7 +85,7 @@ public class MegaDrone extends Enemy {
     @Override
     public void unhit() {
         super.unhit();
-        this.health = 1000;
+        this.health = 10;
     }
 
     /**

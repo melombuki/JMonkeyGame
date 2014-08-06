@@ -251,13 +251,13 @@ public class PlayAppState extends AbstractAppState implements
     public void update(float tpf) {
         // Only update anything when the player is playing
         if(isRunning) {
-            if(!isRun) {
+            if(isRun) {
                 channel.setAnim("Run");
                 channel.setLoopMode(LoopMode.Loop);
                 channel.setSpeed(tpf*200f);
                 isRun = true;
             }
-            // Check if round is completed (i.e. all balls hit), or the game is over
+            // Check if round is completed (i.e. megaDrone is dead), or the game is over
             if(megaDrone.gethealth() <= 0) {
                 isRoundOver = true;
             }
@@ -379,12 +379,17 @@ public class PlayAppState extends AbstractAppState implements
             control = rootNode.getChild("zelda").getControl(AnimControl.class);
             control.addListener(this); 
             channel = control.createChannel();
-            SkeletonDebugger skdb = new SkeletonDebugger("skeleton", control.getSkeleton());
-            Material skmat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-            skmat.setColor("Color", ColorRGBA.Blue);
-            skmat.getAdditionalRenderState().setDepthTest(false);
-            skdb.setMaterial(skmat);
-            playerNode.attachChild(skdb);
+            isRun = true; //need to change this to walk only with holding walk button
+            
+            // Debugging bone skeleton only
+            if(bulletAppState.isDebugEnabled()) {
+                SkeletonDebugger skdb = new SkeletonDebugger("skeleton", control.getSkeleton());
+                Material skmat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+                skmat.setColor("Color", ColorRGBA.Blue);
+                skmat.getAdditionalRenderState().setDepthTest(false);
+                skdb.setMaterial(skmat);
+                playerNode.attachChild(skdb);
+            }
             
             
             // Add everything to the physics space
@@ -409,6 +414,9 @@ public class PlayAppState extends AbstractAppState implements
             // Remove playser input controls
             enableControls(false);
             enableCrossHairs(false);
+            control.clearChannels();
+            control.clearListeners();
+            isRun = false;
             bulletAppState.setEnabled(false);
             left = false; right = false; up = false; down = false;
             rootNode.detachAllChildren();
@@ -757,7 +765,7 @@ public class PlayAppState extends AbstractAppState implements
      */
     public void resetPlayer() {
         // Put the player back to their proper start location
-        playerNode.setLocalTranslation(new Vector3f(-95f, 30f, 95f));
+        player.getRigidBody().setPhysicsLocation(new Vector3f(-95f, 30f, 95f));
     }
     
     /*
