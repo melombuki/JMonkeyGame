@@ -77,6 +77,7 @@ public class PlayAppState extends AbstractAppState implements
     private Node playerNode; //wraps player CharacterControl with a name
     private Spatial FemaleChar;
     private Node playerGun; //position for a gun held by the player
+    private Spatial gun;
     private AnimControl control;
     private AnimChannel channel;
     private CharControl player;
@@ -190,6 +191,8 @@ public class PlayAppState extends AbstractAppState implements
         playerGun = new Node("gun");
         playerNode.attachChild(playerGun);
         playerGun.setLocalTranslation(new Vector3f(0f, 5f, 2f));
+        gun = assetManager.loadModel("Models/blaster/blaster.j3o");
+        playerGun.attachChild(gun);
               
         listener.setVolume(0); //mute
         
